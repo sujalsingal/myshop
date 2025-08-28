@@ -1,0 +1,314 @@
+{% extends 'ecommerce/base.html' %}
+{% load static %}
+{% block title %}Welcome - My Shop{% endblock %}
+
+{% block content %}
+
+<style>
+/* General container padding */
+.container { padding: 2rem 0; }
+
+/* Section headers */
+.section-header {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 2rem 0 1rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+/* Scrollable product sections */
+.scroll-products {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+    padding: 1rem 0;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    -ms-overflow-style: none;
+}
+.scroll-products::-webkit-scrollbar { display: none; }
+.scroll-products::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+/* Product card */
+.product-card {
+    min-width: 220px;
+    max-width: 220px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+}
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+.product-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: contain;
+    border-radius: 12px 12px 0 0;
+    background: #f9f9f9;
+}
+
+.card-body {
+    padding: 0.75rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: center;
+}
+
+/* Buttons */
+.card-body .btn {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.6rem;
+}
+
+.btn-cart { background-color: #ffb400; color: #fff; border: none; }
+.btn-cart:hover { background-color: #e6a400; }
+
+.btn-quick { background-color: #17a2b8; color: #fff; border: none; }
+.btn-quick:hover { background-color: #138496; }
+
+.save-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    background-color: rgba(255,255,255,0.9);
+    border: 1.5px solid #dc3545;
+    border-radius: 50%;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    z-index: 10;
+}
+.save-btn.saved { background-color: #dc3545; color: white; }
+.save-btn:hover { background-color: #dc3545; color: white; }
+
+/* Toast container */
+#toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1055;
+}
+
+/* Responsive adjustments */
+@media(max-width: 768px){
+    .product-card { min-width: 180px; max-width: 180px; }
+    .card-body .btn { font-size: 0.75rem; padding: 0.3rem 0.5rem; }
+}
+</style>
+
+<div id="toast-container"></div>
+
+<div class="container">
+  <div class="welcome-section text-center mb-5">
+    <h1 class="display-5">Welcome to MyShop</h1>
+    <p class="lead">Discover amazing products and deals every day.</p>
+    <a href="{% url 'detail' %}" class="btn btn-primary btn-lg mt-3">Shop Now</a>
+  </div>
+
+  {% for category in categories %}
+    <h2 class="section-header">{{ category.choice }}</h2>
+    <div class="scroll-products">
+      {% for product in category.top_products %}
+      <div class="product-card">
+        {% if product.product_photo %}
+          <a href="{% url 'product_detail' product.id %}">
+            <img src="{{ product.product_photo }}" alt="{{ product.product_name }}">
+          </a>
+        {% else %}
+          <div class="text-center text-muted py-5">No Image</div>
+        {% endif %}
+
+        <div class="card-body">
+          <h5>{{ product.product_name }}</h5>
+          <p><strong>₹{{ product.product_price }}</strong></p>
+          <p class="text-muted small">Stock: {{ product.quantity }}</p>
+
+          <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <!-- Add to Cart -->
+            <button class="btn btn-cart btn-sm" id="add-btn-{{ product.id }}" data-url="{% url 'increase_quantity' product.id %}" onclick="addToCart({{ product.id }})">Add to Cart</button>
+
+            <!-- Stepper -->
+            <div class="d-flex align-items-center d-none" id="stepper-{{ product.id }}">
+              <button class="btn btn-sm btn-danger px-2" id="decrease-{{ product.id }}" onclick="updateQty({{ product.id }}, 'decrease')">-</button>
+              <span class="mx-2" id="qty-{{ product.id }}">1</span>
+              <button class="btn btn-sm btn-success px-2" onclick="updateQty({{ product.id }}, 'increase')">+</button>
+            </div>
+
+            <!-- Quick View -->
+            <button class="btn btn-quick btn-sm" data-bs-toggle="modal" data-bs-target="#productQuickViewModal" onclick="loadQuickViewContent({{ product.id }})">Quick View</button>
+          </div>
+
+          <!-- Save Button -->
+          <button class="save-btn {% if product.id in saved_product_ids %}saved{% endif %}" data-product-id="{{ product.id }}" onclick="toggleSave(this)">
+            {% if product.id in saved_product_ids %}
+              <i class="bi bi-bookmark-fill"></i>
+            {% else %}
+              <i class="bi bi-bookmark"></i>
+            {% endif %}
+          </button>
+        </div>
+      </div>
+      {% empty %}
+        <p>No products available.</p>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Quick View Modal -->
+<div class="modal fade" id="productQuickViewModal" tabindex="-1" aria-labelledby="productQuickViewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Product Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body"></div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie) {
+        document.cookie.split(';').forEach(cookie => {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        });
+    }
+    return cookieValue;
+}
+
+function showToast(message, type="primary") {
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) return;
+    const toastHtml = `
+    <div class="toast text-bg-${type} border-0" role="alert" data-bs-delay="2000" aria-live="polite" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>`;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = toastHtml;
+    const toastEl = tempDiv.firstElementChild;
+    toastContainer.appendChild(toastEl);
+    const bsToast = new bootstrap.Toast(toastEl);
+    bsToast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+}
+
+function updateCartIconCount(count) {
+    const cartCount = document.getElementById('cart-count');
+    if (cartCount) { cartCount.textContent = count; cartCount.style.display = count > 0 ? 'inline' : 'none'; }
+}
+
+// Add to Cart
+function addToCart(productId) {
+    const btn = document.getElementById('add-btn-' + productId);
+    fetch(btn.dataset.url, {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken'),'X-Requested-With':'XMLHttpRequest'}
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === "success") {
+            updateCartIconCount(data.cart_count);
+            document.getElementById('qty-' + productId).innerText = data.quantity;
+            btn.classList.add('d-none');
+            document.getElementById('stepper-' + productId).classList.remove('d-none');
+            document.getElementById('decrease-' + productId).disabled = data.quantity <= 1;
+            showToast('Added to cart', 'success');
+        } else {
+            showToast(data.message || 'Failed to add to cart', 'danger');
+        }
+    }).catch(()=>showToast('Error adding to cart','danger'));
+}
+
+// Update Quantity
+function updateQty(productId, action) {
+    const url = action === 'increase' ? `{% url 'increase_quantity' 0 %}`.replace('0', productId)
+                                      : `{% url 'decrease_quantity' 0 %}`.replace('0', productId);
+    fetch(url, {method:'POST', headers:{'X-CSRFToken':getCookie('csrftoken'),'X-Requested-With':'XMLHttpRequest'}})
+    .then(res=>res.json())
+    .then(data=>{
+        if(data.quantity <= 0){
+            document.getElementById('stepper-'+productId).classList.add('d-none');
+            document.getElementById('add-btn-'+productId).classList.remove('d-none');
+            document.getElementById('qty-'+productId).innerText = 1;
+        } else {
+            document.getElementById('qty-'+productId).innerText = data.quantity;
+            document.getElementById('decrease-'+productId).disabled = data.quantity <= 1;
+        }
+        updateCartIconCount(data.cart_count);
+        if(data.message) showToast(data.message);
+    })
+    .catch(()=>showToast('Failed to update quantity.','danger'));
+}
+
+// Quick View
+function loadQuickViewContent(productId){
+    const modalBody = document.querySelector('#productQuickViewModal .modal-body');
+    modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Loading product details...</p></div>`;
+    fetch(`{% url 'quick_view_product' 0 %}`.replace('0',productId))
+    .then(res=>res.json())
+    .then(data=>modalBody.innerHTML = data.html || '<p class="text-danger text-center">Failed to load product details.</p>')
+    .catch(()=>modalBody.innerHTML = '<p class="text-danger text-center">Error loading product details.</p>');
+}
+
+// Save Toggle
+function toggleSave(button){
+    const productId = button.dataset.productId;
+    fetch(`/save/${productId}/`, {method:'POST', headers:{'X-CSRFToken':getCookie('csrftoken'),'X-Requested-With':'XMLHttpRequest'}})
+    .then(res=>res.json())
+    .then(data=>{
+        if(data.status==='added'){ button.classList.add('saved'); button.innerHTML='<i class="bi bi-bookmark-fill"></i>'; }
+        else if(data.status==='removed'){ button.classList.remove('saved'); button.innerHTML='<i class="bi bi-bookmark"></i>'; }
+        if(data.message) showToast(data.message);
+    }).catch(()=>showToast('Failed to toggle saved status.','danger'));
+}
+
+// Initialize Cart Count and Stepper
+document.addEventListener("DOMContentLoaded",()=>{
+    fetch("{% url 'cart_count' %}")
+        .then(res=>res.json())
+        .then(data=>{
+            updateCartIconCount(data.cart_count);
+            if(data.items){
+                data.items.forEach(item=>{
+                    const addBtn = document.getElementById('add-btn-'+item.product_id);
+                    const stepper = document.getElementById('stepper-'+item.product_id);
+                    const qtySpan = document.getElementById('qty-'+item.product_id);
+                    if(addBtn && stepper){
+                        addBtn.classList.add('d-none');
+                        stepper.classList.remove('d-none');
+                        qtySpan.innerText = item.quantity;
+                        document.getElementById('decrease-'+item.product_id).disabled = item.quantity <= 1;
+                    }
+                });
+            }
+        })
+        .catch(()=>console.error('Error fetching cart count'));
+});
+</script>
+{% endblock %}
