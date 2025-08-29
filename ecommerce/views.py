@@ -22,7 +22,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def index(request):
     categories = Category.objects.prefetch_related(
-        Prefetch('product_set', queryset=Product.objects.order_by('-id')[:8], to_attr='top_products')
+        Prefetch('product_set', queryset=Product.objects.order_by('-id')[:10], to_attr='top_products')
     )
 
     return render(request, "ecommerce/index.html", {
