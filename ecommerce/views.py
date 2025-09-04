@@ -15,7 +15,6 @@ from decimal import Decimal
 from django.views.generic import DetailView,ListView
 from django.template.loader import render_to_string
 from ecommerce.utils.cart_utils import get_cart_items_and_total
-
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
