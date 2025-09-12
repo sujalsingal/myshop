@@ -1,0 +1,234 @@
+{% extends 'ecommerce/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+.saved-container {
+    max-width: 1200px;
+    margin: 50px auto;
+    padding: 20px;
+    text-align: center;
+}
+
+.saved-container h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.saved-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.saved-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.saved-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.saved-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-bottom: 1px solid #eee;
+}
+
+.saved-info {
+    padding: 15px;
+    text-align: center;
+}
+
+.saved-info h3 {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    color: #222;
+}
+
+.price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #28a745;
+    margin-bottom: 8px;
+}
+
+.quantity {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.remove-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #ff4d4d;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background 0.2s ease;
+}
+
+.remove-btn:hover {
+    background: #e60000;
+}
+
+.toast {
+    visibility: hidden;
+    min-width: 220px;
+    background: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 14px;
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    bottom: 30px;
+    font-size: 15px;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  }
+  .toast.show {
+    visibility: visible;
+    opacity: 1;
+  }
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+}
+
+.empty-state p {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.browse-btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.browse-btn:hover {
+    background: #0056b3;
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="saved-container">
+    <h2>Your Saved Items</h2>
+    <div class="saved-grid">
+        {% for product in saved_products %}
+            <div class="saved-card">
+                <img src="{{ product.product_photo }}" alt="{{ product.product_name }}">
+                <div class="saved-info">
+                    <h3>{{ product.product_name }}</h3>
+                    <p class="price">₹{{ product.product_price }}</p>
+                    <p class="quantity">Quantity: {{ product.quantity }}</p>
+                    <form class="buy-now-form" data-id="{{ product.id }}" action="{% url 'add_to_cart' product.id %}" method="post">
+    {% csrf_token %}
+    <button type="submit"
+            class="btn btn-success btn-lg w-100 shadow-sm rounded-pill mb-3"
+            style="font-size: 1.1rem; font-weight: 600; height: 55px;">
+        <i class="bi bi-lightning-fill fs-5"></i> Buy Now
+    </button>
+</form>
+
+                    <form>
+                        {% csrf_token %}
+                        <button type="button" class="remove-btn" data-id="{{ product.id }}">Remove</button>
+                    </form>
+
+
+                </div>
+            </div>
+        {% empty %}
+
+        {% endfor %}
+          <div class="empty-state">
+                <a href="{% url 'detail' %}" class="browse-btn">Browse Products</a>
+            </div>
+    </div>
+</div>
+
+<script>
+// ✅ Buy Now with AJAX (fetch)
+document.querySelectorAll('.buy-now-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();  // stop raw JSON in browser
+        let url = this.action;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: data.message,
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            } else {
+                Swal.fire("Error", data.message, "error");
+            }
+        });
+    });
+});
+
+// ✅ Remove saved item (your existing code)
+document.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        let productId = this.dataset.id;
+
+        fetch(`/remove-saved/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "removed") {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: data.message,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+                this.closest('.saved-card').remove();
+            }
+        });
+    });
+});
+</script>
+
+
+
+<link rel="stylesheet" href="{% static 'ecommerce/css/saved_items.css' %}">
+{% endblock %}

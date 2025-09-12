@@ -1,0 +1,365 @@
+# Creating a detailed PDF plan for MyShop backend enhancements including where to use AI tools.
+# The script will try to use reportlab to generate a nicely formatted PDF. If reportlab is not available,
+# it will fall back to a very simple PDF via fpdf. The final PDF will be saved to /mnt/data/myshop_backend_plan_ai_tools.pdf
+# and the notebook will output the path. This file will be available for download.
+
+from datetime import datetime
+content_title = "MyShop Backend Enhancement Plan — Detailed Steps + AI Tools Integration"
+date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S (Asia/Kolkata)")
+
+# Long detailed content (multi-section). Tailor content to user request: day-by-day steps and AI tool guidance.
+content = f"""{content_title}
+
+Generated: {date_str}
+
+Table of Contents
+1. Executive Summary
+2. How to use this document (day-by-day workflow)
+3. Phase-by-phase detailed plan (Discovery → Ops → Advanced)
+4. Recommended AI tools and where to use them (detailed per task)
+5. Daily / Week-by-week suggested cadence (flexible)
+6. Templates, commands, and code snippets quick reference
+7. Acceptance criteria & checkpoints
+8. Appendices: Useful resources and checklist
+
+---
+1) EXECUTIVE SUMMARY
+This document is a step-by-step, modular plan to enhance the MyShop backend into a scalable, maintainable, and production-ready system. It bundles technical tasks, operational tasks, testing, monitoring, and where and how to use AI tools to accelerate development without sacrificing quality. Use this as your master plan and check items off as you complete them.
+
+2) HOW TO USE THIS DOCUMENT
+- Work phase-by-phase. Each phase contains tasks, deliverables, acceptance criteria, and suggested AI tools to help.
+- The "Daily / Week-by-week" section gives a suggested cadence. You're free to go slower; the plan is modular.
+- Keep a running journal in the repository (CHANGELOG.md) to capture decisions and reasons for easier rollback.
+
+3) PHASE-BY-PHASE DETAILED PLAN
+
+PHASE 0 — DISCOVERY & SAFETY CHECK (Deliverables: Inventory, Staging, Backups, KPIs)
+Tasks:
+- Inventory: list apps, dependencies, infra, secrets. Create a spreadsheet of endpoints, DB size, and top-slow queries.
+- Create staging environment similar to production.
+- Full DB and media backup and restore test.
+- Define KPIs: request latency targets, error budget, expected daily requests, peak concurrent sessions.
+AI HELP:
+- Use AI (ChatGPT / Claude / Copilot) to auto-generate an inventory checklist by scanning README, Dockerfiles, and settings files (prompt the model with repo snippets).
+- Use GitHub Copilot or Tabnine while writing scripts to dump DB and automate backup tests.
+Acceptance:
+- Staging runs the current app and accepts fake transactions. Backup + restore verified.
+
+PHASE 1 — CODE HYGIENE & REPO STRUCTURE (Deliverables: modular apps, linting, settings)
+Tasks:
+- Reorganize Django apps (products, orders, users, payments, reviews, notifications, search).
+- Add pre-commit hooks (black, isort, flake8), CI lint step.
+- Move secrets to env and create settings/base, dev, prod pattern.
+AI HELP:
+- Use Copilot / ChatGPT to create consistent settings stubs and example .env templates.
+- Use AI-assisted linters or code analyzers (Snyk, GitHub CodeQL) for dependency vulnerabilities.
+Acceptance:
+- CI runs lint and tests on PRs. Repo has clear README and setup steps.
+
+PHASE 2 — API LAYER (DRF) & CONTRACTS (Deliverables: OpenAPI, Postman collection)
+Tasks:
+- Implement DRF, versioned API (/api/v1/...), serializers, viewsets, routers.
+- Document APIs (drf-spectacular). Provide Postman collection and API tests.
+AI HELP:
+- Use ChatGPT / Copilot to scaffold serializers and viewsets quickly (paste model definitions and ask for serializers).
+- Use AI to generate OpenAPI examples and sample responses for documentation.
+Acceptance:
+- Frontend can integrate using OpenAPI spec, tests for basic flows pass.
+
+PHASE 3 — DATABASE & MODELING (Postgres) (Deliverables: migrations, indexes)
+Tasks:
+- Migrate to PostgreSQL if needed; add indexes for heavy queries; use select_related/prefetch and UUIDs if required.
+AI HELP:
+- Use Copilot/ChatGPT to analyze slow SQL query samples and suggest indexes or ORM refactors. Provide query logs as input to the model.
+- Use AI code generation to create migration scripts skeletons and SQL to create/verify indexes.
+Acceptance:
+- Query improvements measurable on staging; N+1 issues fixed on critical endpoints.
+
+PHASE 4 — CACHING & CDN (Redis + Cloudfront/Cloudflare)
+Tasks:
+- Configure Redis for caching and sessions. Setup CDN for static & media.
+- Define cache key strategy and invalidation rules.
+AI HELP:
+- Use ChatGPT to generate cache key naming standards and sample Django caching decorators.
+- Use AI to create scripts (Celery tasks) to invalidate caches on product update events.
+Acceptance:
+- Repeated product listing hits are served from cache on staging.
+
+PHASE 5 — BACKGROUND JOBS (Celery + Redis)
+Tasks:
+- Install Celery, define queues, ensure idempotent tasks, configure retries and dead-lettering.
+AI HELP:
+- Use Copilot to scaffold Celery app file, tasks, and to convert synchronous routines (like image resizing, report generation) into idempotent tasks.
+- Use ChatGPT to create retry policies and worker scaling suggestions based on queue depth logs.
+Acceptance:
+- Heavy tasks run asynchronously; web requests are fast and non-blocking.
+
+PHASE 6 — MEDIA & FILES (S3 / Cloudinary)
+Tasks:
+- Move static & media to S3, route through CDN. Implement image resizing pipeline.
+AI HELP:
+- Use AI to produce Django-storages settings and a Celery pipeline for thumbnail generation.
+Acceptance:
+- New uploads stored in S3 and served via CDN.
+
+PHASE 7 — PAYMENTS & ORDER LIFECYCLE
+Tasks:
+- Integrate Stripe/Razorpay, implement webhook handlers with idempotency, design order state machine.
+AI HELP:
+- Use AI to draft robust webhook handler code that verifies signatures and uses idempotency keys.
+- Use ChatGPT to produce test cases and sample payloads for webhook replay testing.
+Acceptance:
+- Webhooks processed idempotently and payments reconcile against orders.
+
+PHASE 8 — SEARCH & RECOMMENDATIONS
+Tasks:
+- Add Elasticsearch or Postgres full-text for search; build nightly recompute for recommendations.
+AI HELP:
+- Use AI to craft Elasticsearch mapping templates and to generate simple collaborative-filtering pseudocode for recommendations to start with.
+Acceptance:
+- Search returns decent results; recommendations are returning results that can be iterated on.
+
+PHASE 9 — OBSERVABILITY & LOGGING
+Tasks:
+- Add Sentry for errors, Prometheus for metrics, Grafana dashboards, structured logging to ELK/CloudWatch.
+AI HELP:
+- Use ChatGPT to create Sentry integration snippets, Prometheus exporters, and Grafana dashboard JSON skeletons.
+- Use AI to help write alerting rules (example Prometheus alert expressions) and templates for incident reports.
+Acceptance:
+- Alerts trigger on errors, dashboards show traffic and latency baselines.
+
+PHASE 10 — SECURITY & COMPLIANCE
+Tasks:
+- TLS everywhere, CSP, CORS, secrets rotation, dependency scanning, pen-test for checkout flows.
+AI HELP:
+- Use AI to create security checklists, example CSP headers, and to auto-generate threat models from your architecture diagram.
+Acceptance:
+- No critical OWASP issues in scans; secure payment flow confirmed.
+
+PHASE 11 — TESTING & LOAD TESTING
+Tasks:
+- Unit tests, integration tests for payment flows, load testing (Locust).
+AI HELP:
+- Use AI to generate test scaffolding and sample test cases for PyTest and Locust scenarios (checkout under load).
+Acceptance:
+- Tests run in CI and Locust baseline measured in staging.
+
+PHASE 12 — CI/CD & IaC
+Tasks:
+- Docker multi-stage builds, GitHub Actions for lint/test/build, Terraform/CloudFormation for infra.
+AI HELP:
+- Use AI to generate CI pipelines, Dockerfile content, and Terraform module skeletons. Use Copilot to quickly iterate on pipeline steps.
+Acceptance:
+- CI pipeline builds and deploys to staging; infra provisioning reproducible.
+
+PHASE 13 — DEPLOYMENT & SCALING
+Tasks:
+- Choose between managed services or K8s; add pgbouncer and read replicas if needed.
+AI HELP:
+- Use AI to suggest deployment templates (Helm charts) and scaling rules based on metrics; it can help convert human intent into manifest templates ready for minor edits.
+Acceptance:
+- Able to scale web and worker tiers independently.
+
+4) RECOMMENDED AI TOOLS (DETAILED & WHERE TO USE THEM)
+Below is a categorized list of AI tools and exactly where to use them in the project. Use these tools as accelerators, not as blind autopilot — always review generated code.
+
+A) Code generation, autocompletion & scaffolding
+- GitHub Copilot / Copilot for Teams
+  * Use while writing serializers, viewsets, migration helpers, and tests.
+  * Use for generating boilerplate Dockerfiles, GitHub Actions workflows, and k8s manifests.
+- Tabnine / Codeium / Amazon CodeWhisperer
+  * Helpful for offline IDE completions and multi-language projects.
+- How to use:
+  * Prompt: include short context + example of model or function and ask for a serializer or test.
+
+B) Large language models for architecture, designs & explanations
+- ChatGPT (OpenAI), Claude (Anthropic), Gemini (Google)
+  * Use these for brainstorming architecture alternatives, writing runbooks, generating SQL index suggestions (feed the slow query), and drafting documentation.
+- How to use:
+  * Paste non-sensitive code or abstract descriptions and ask for options, risks, and alternative approaches.
+
+C) Automated code review & security scanning
+- Snyk, Dependabot, GitHub CodeQL, DeepSource
+  * Use for dependency vulnerability scanning, static analysis, and automated fixes or PRs.
+- How to use:
+  * Integrate in CI to run on every PR. Review suggested fixes manually.
+
+D) Test generation & load testing assistance
+- ChatGPT / Copilot for unit test templates.
+- K6 Cloud / Locust for load scripts. Use AI to craft realistic user behavior scenarios (browsing, search, checkout).
+- How to use:
+  * Provide endpoint list and metrics; ask AI to generate realistic Locust scenarios with proper pacing and randomized inputs.
+
+E) Observability & incident response helpers
+- AI can draft Prometheus alert rules and Grafana dashboard templates.
+- Use ChatGPT to generate incident playbooks and RCA templates from logs & traces.
+- How to use:
+  * Feed sanitized traces or error messages to AI for structured RCA drafts.
+
+F) Data, search, & recommendations
+- Use Python ML helpers (OpenAI embeddings, Hugging Face inference API, or Elasticsearch learning-to-rank).
+- Use AI to prototype product similarity using embeddings (product description embedding, cosine similarity).
+- How to use:
+  * Produce embeddings offline (batch), store them, compute nearest neighbors for recommendations; use AI to write prototype scripts and to tune vector similarity thresholds.
+
+G) Content & marketing automation
+- Use AI copywriting (ChatGPT, Jasper) for product descriptions, SEO titles, and email templates (promotions, cart reminder).
+- How to use:
+  * Batch-produce descriptions, then human-edit for correctness. Store original product attributes and generated suggestions in admin UI for quick approve/publish workflow.
+
+H) Testing & QA automation
+- Use AI to create test cases and to convert bug reports into reproducible steps.
+- Tools: Testim, Functionize (commercial) or AI-assisted test generation using local models.
+- How to use:
+  * Convert issue description into step-by-step test scripts or Playwright tests via AI prompts.
+
+I) Cost & infra optimization
+- Use AI to audit infra costs and generate suggestions (right-size instances, use spot instances) — many cloud consoles also provide cost recommendations; AI can help turn them into action items.
+- How to use:
+  * Provide billing summaries (non-sensitive) to AI for suggestions; then confirm in cloud console.
+
+Notes on data privacy and secrets:
+- Do not paste secrets, private keys, or raw payment webhook payloads containing secrets into public LLM prompts.
+- Use non-sensitive examples or sanitized logs when interacting with external AI models.
+
+5) DAILY / WEEK-BY-WEEK SUGGESTED CADENCE (FLEXIBLE)
+This is a suggested cadence; adjust to your schedule. Each line is a suggested block of work you can complete in a day or two depending on complexity.
+
+Week 1 — Discovery & Setup (Day-by-day)
+Day 1: Repo inventory, create issues board, staging setup, backup test.
+Day 2: Setup pre-commit, linters, and CI skeleton; add README improvements.
+Day 3: Create settings split (dev/prod), move secrets into env templates.
+Day 4: Scaffold DRF and basic API routes (products list, product detail).
+Day 5: Migrate to PostgreSQL locally and run migrations on staging.
+
+Week 2 — API & DB hardening
+Day 6: Implement serializers & viewsets for products and orders (use Copilot).
+Day 7: Add pagination, filtering, and DRF throttling for login endpoints.
+Day 8: Add select_related/prefetch for product list and optimize queries.
+Day 9: Add Redis caching for product listing and configure simple cache keys.
+Day 10: Set up Celery basics + a sample async task (send order email).
+
+Week 3 — Payments, Media, & Observability
+Day 11: Integrate Stripe/Razorpay sandbox and webhook handler skeleton.
+Day 12: Move media to S3 or configure Cloudinary; wire admin uploads to CDN.
+Day 13: Add Sentry and a Prometheus exporter; create basic Grafana dashboard templates.
+Day 14: Write unit tests for payment webhook handler and checkout flow.
+Day 15: Run a small-scale load test for product listing (Locust) and fix bottlenecks.
+
+Week 4 — Search, Recommendations, and Harden
+Day 16: Prototype search (Postgres full-text or Elasticsearch).
+Day 17: Build a simple recommendations script using embeddings (AI-assisted).
+Day 18: Add more integration tests, and start performance tuning queries and caches.
+Day 19: Security sweep: CSP, CORS, rate limiting, dependency updates.
+Day 20: Prepare deployment pipeline, finalize Dockerfile & GitHub Actions.
+
+6) TEMPLATES, COMMANDS & SNIPPETS (Quick reference)
+- Docker build (local):
+  docker build -t myshop:local .
+- Run dev with docker-compose:
+  docker compose up --build
+- Backup Postgres:
+  pg_dump -U $PGUSER -h $PGHOST $PGDATABASE > dump.sql
+- Restore:
+  psql -U $PGUSER -h $PGHOST $PGDATABASE < dump.sql
+
+7) ACCEPTANCE CRITERIA & CHECKPOINTS
+- Phase-completion checklist for each phase (deliverables tested in staging and documented).
+- KPIs review: check latency and error rate before and after major changes.
+- Rollback plan validated for DB migrations.
+
+8) APPENDICES & CHECKLISTS
+- Security checklist (TLS, secure cookies, CSP, CORS, rate-limiting)
+- Backup checklist (daily backups + weekly snapshots)
+- Release checklist (run migrations, run tests, health check)
+
+---
+End of document
+"""
+
+# Try to create PDF using reportlab; if not available, fallback to fpdf.
+
+output_path = "/mnt/data/myshop_backend_plan_ai_tools.pdf"
+
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import mm
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.pdfgen import canvas
+    import textwrap
+
+    # Register a basic font
+    try:
+        pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
+        font_name = 'DejaVuSans'
+    except Exception:
+        font_name = 'Helvetica'
+
+    c = canvas.Canvas(output_path, pagesize=A4)
+    width, height = A4
+    margin = 20 * mm
+    max_width = width - 2*margin
+    x = margin
+    y = height - margin
+
+    # Title
+    c.setFont(font_name, 14)
+    c.drawString(x, y, content_title)
+    y -= 10 * mm
+    c.setFont(font_name, 9)
+    c.drawString(x, y, f"Generated: {date_str}")
+    y -= 8 * mm
+
+    # Prepare text object for body
+    text = c.beginText()
+    text.setTextOrigin(x, y)
+    text.setFont(font_name, 10)
+    wrapper = textwrap.TextWrapper(width=110)
+    for paragraph in content.split("\n\n"):
+        lines = []
+        for line in paragraph.split("\n"):
+            if not line.strip():
+                lines.append("")
+            else:
+                wrapped = wrapper.wrap(line)
+                if not wrapped:
+                    lines.append("")
+                else:
+                    lines.extend(wrapped)
+        for ln in lines:
+            text.textLine(ln)
+            # move to next page if needed
+            if text.getY() < margin:
+                c.drawText(text)
+                c.showPage()
+                text = c.beginText()
+                text.setTextOrigin(x, height - margin)
+                text.setFont(font_name, 10)
+        # blank line between paragraphs
+        text.textLine("")
+    c.drawText(text)
+    c.save()
+    result = {"path": output_path, "method": "reportlab"}
+except Exception as e_reportlab:
+    try:
+        # fallback to fpdf
+        from fpdf import FPDF
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        for paragraph in content.split("\n\n"):
+            pdf.multi_cell(0, 6, paragraph)
+            pdf.ln()
+        pdf.output(output_path)
+        result = {"path": output_path, "method": "fpdf", "error_reportlab": str(e_reportlab)}
+    except Exception as e_fpdf:
+        # final fallback: write markdown to file (user asked PDF but we'll provide md if PDF creation fails)
+        md_path = "/mnt/data/myshop_backend_plan_ai_tools.md"
+        with open(md_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        result = {"path": md_path, "method": "markdown_fallback", "error_reportlab": str(e_reportlab), "error_fpdf": str(e_fpdf)}
+
+result
+

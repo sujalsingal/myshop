@@ -1,0 +1,203 @@
+
+{% load static %}
+{# No need for {% load ecommerce_filters %} here #}
+
+
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'ecommerce/css/detail_page.css' %}">
+
+
+<div class="row">
+
+
+<div class="col-md-5">
+    {% if product.product_photo %}
+
+    <div class="img-zoom-container" id="quickViewZoomContainer"> {# Added an ID to the container #}
+            <img id="quickViewProductImage" src="{{ product.product_photo }}" alt="{{ product.product_name }}" class="img-fluid rounded shadow-sm">
+        </div>
+    {% else %}
+        <div class="text-center text-muted py-5 border rounded bg-light">No Image Available</div>
+    {% endif %}
+</div>
+
+
+    <div class="col-md-7">
+        <h3 class="mb-2 fw-bold">{{ product.product_name }}</h3>
+        <p class="lead text-success fw-bold fs-4">₹{{ product.product_price }}</p>
+
+        <hr class="my-3">
+
+        <p class="mb-1"><strong>Category:</strong> {{ product.category }}</p>
+        {% if product.brand %}
+            <p class="mb-1"><strong>Brand:</strong> {{ product.brand }}</p>
+        {% endif %}
+        <p class="mb-1"><strong>Quantity:</strong>
+            {% if product.quantity %}
+                ({{ product.quantity }} )
+
+            {% endif %}
+        </p>
+
+        <hr class="my-3">
+
+        <h5>Description</h5>
+        {% if product.description %}
+        <p class="text-muted mb-4">{{ product.description}}</p>
+{% endif %}
+        {% if product.features %}
+            <h5>Key Features:</h5>
+            <ul class="list-unstyled">
+                {# You might need a custom filter to split features into lines if they are stored as one string #}
+                <li>{{ product.features }}</li>
+            </ul>
+        {% endif %}
+
+        <div class="d-grid gap-2 mb-3">
+           <button onclick="addToCart({{ product.id }})"
+          class="btn btn-warning btn-sm"
+          id="add-btn-{{ product.id }}">
+    Add to Cart
+  </button>
+
+  <!-- Stepper (hidden initially) -->
+  <div class="d-flex align-items-center d-none" id="stepper-{{ product.id }}">
+    <button class="btn btn-sm btn-danger px-2" onclick="updateQty({{ product.id }}, 'decrease')">-</button>
+    <span class="mx-2" id="qty-{{ product.id }}">1</span>
+    <button class="btn btn-sm btn-success px-2" onclick="updateQty({{ product.id }}, 'increase')">+</button>
+  </div>
+            <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-info btn-lg mt-2">
+                <i class="bi bi-info-circle"></i> View Full Product Page
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+  function addToCart(productId) {
+    fetch(`/cart/increase/${productId}/`)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('qty-' + productId).innerText = data.quantity;
+        document.getElementById('add-btn-' + productId).classList.add('d-none');
+        document.getElementById('stepper-' + productId).classList.remove('d-none');
+      });
+  }
+
+  function updateQty(productId, action) {
+    const url = action === 'increase'
+      ? `/cart/increase/${productId}/`
+      : `/cart/decrease/${productId}/`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const qty = data.quantity;
+        const qtySpan = document.getElementById('qty-' + productId);
+
+        if (qty <= 0) {
+          document.getElementById('stepper-' + productId).classList.add('d-none');
+          document.getElementById('add-btn-' + productId).classList.remove('d-none');
+          qtySpan.innerText = 1;
+        } else {
+          qtySpan.innerText = qty;
+        }
+      });
+  }
+// This function should be defined globally, for example, in ecommerce/static/ecommerce/js/shop_functions.js
+// or directly in a <script> tag in ecommerce/templates/ecommerce/base.html
+
+function imageZoom(imgID, containerID) {
+    var img = document.getElementById(imgID);
+    var container = document.getElementById(containerID);
+    var magnifier;
+    var zoom = 3; // Zoom level (e.g., 3x magnification)
+
+    if (!img || !container) {
+        console.warn("Image or container element not found for zoom:", imgID, containerID);
+        return;
+    }
+
+    /* Create magnifier element: */
+    magnifier = document.createElement("DIV");
+    magnifier.setAttribute("class", "img-magnifier-lens");
+    container.appendChild(magnifier);
+
+    /* Set background image for the magnifier: */
+    magnifier.style.backgroundImage = "url('" + img.src + "')";
+    magnifier.style.backgroundRepeat = "no-repeat";
+
+    // Ensure image is loaded before setting background size based on its natural dimensions
+    var setBackgroundSize = function() {
+        magnifier.style.backgroundSize = (img.naturalWidth * zoom) + "px " + (img.naturalHeight * zoom) + "px";
+    };
+
+    if (img.complete) {
+        setBackgroundSize();
+    } else {
+        img.onload = setBackgroundSize;
+    }
+
+    /* Execute a function when someone moves the mouse over the image, or the magnifier glass: */
+    img.addEventListener("mousemove", moveMagnifier);
+    magnifier.addEventListener("mousemove", moveMagnifier);
+
+    /* And also for touch screens: */
+    img.addEventListener("touchmove", moveMagnifier);
+    magnifier.addEventListener("touchmove", moveMagnifier);
+
+    img.addEventListener("mouseleave", hideMagnifier);
+    magnifier.addEventListener("mouseleave", hideMagnifier);
+
+    img.addEventListener("mouseenter", showMagnifier);
+    magnifier.addEventListener("mouseenter", showMagnifier);
+
+    function getCursorPos(e) {
+        var a, x = 0, y = 0;
+        e = e || window.event;
+        /* Get the x and y positions of the image: */
+        a = img.getBoundingClientRect();
+        /* Calculate the cursor's x and y coordinates, relative to the image: */
+        x = e.pageX - a.left;
+        y = e.pageY - a.top;
+        /* Consider any page scrolling: */
+        x = x - window.pageXOffset;
+        y = y - window.pageYOffset;
+        return {x : x, y : y};
+    }
+
+    function moveMagnifier(e) {
+        var pos, x, y;
+        /* Prevent any other actions that may occur when moving over the image */
+        e.preventDefault();
+        /* Get the cursor's x and y positions: */
+        pos = getCursorPos(e);
+        x = pos.x;
+        y = pos.y;
+
+        /* Prevent the magnifier glass from being outside the image: */
+        if (x > img.width - (magnifier.offsetWidth / zoom)) {x = img.width - (magnifier.offsetWidth / zoom);}
+        if (x < magnifier.offsetWidth / zoom) {x = magnifier.offsetWidth / zoom;}
+        if (y > img.height - (magnifier.offsetHeight / zoom)) {y = img.height - (magnifier.offsetHeight / zoom);}
+        if (y < magnifier.offsetHeight / zoom) {y = magnifier.offsetHeight / zoom;}
+
+        /* Set the position of the magnifier glass: */
+        magnifier.style.left = (x - magnifier.offsetWidth / 2) + "px";
+        magnifier.style.top = (y - magnifier.offsetHeight / 2) + "px";
+
+        /* Display what the magnifier should see: */
+        magnifier.style.backgroundPosition = "-" + ((x * zoom) - magnifier.offsetWidth / 2) + "px -" + ((y * zoom) - magnifier.offsetHeight / 2) + "px";
+    }
+
+    function showMagnifier() {
+        magnifier.style.display = "block";
+    }
+
+    function hideMagnifier() {
+        magnifier.style.display = "none";
+    }
+}
+
+</script>
+{% endblock %}

@@ -1,0 +1,439 @@
+{% extends 'ecommerce/base.html' %}
+{% load static %}
+{% csrf_token %}
+
+{% block title %}Products - MyShop{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'ecommerce/css/detail_page.css' %}">
+
+<style>
+/* ----- General Page Styling ----- */
+body {
+    background-color: #f4f6f8;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.text-center h2 {
+    font-weight: 700;
+    color: #333;
+}
+.category-pill {
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    border: 2px solid #007bff;
+    color: #007bff;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.category-pill:hover,
+.category-pill.active {
+    background: linear-gradient(90deg, #007bff, #00c6ff);
+    color: white !important;
+    transform: scale(1.05);
+}
+
+/* ----- Product Card ----- */
+.product-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 123, 255, 0.2);
+}
+
+/* ----- Product Image ----- */
+.product-img-fit {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    margin-bottom: 1rem;
+}
+
+/* ----- Product Info ----- */
+.product-info h5 {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+.product-info p {
+    font-size: 0.9rem;
+    margin: 0.2rem 0;
+}
+
+/* ----- Buttons ----- */
+.buy-now-btn {
+    background-color: #28a745;
+    color: #fff;
+    border-radius: 50px;
+    font-weight: 600;
+    width: 100%;
+    padding: 0.6rem 0;
+    transition: background-color 0.3s ease;
+}
+.buy-now-btn:hover {
+    background-color: #218838;
+}
+
+.add-to-cart-btn {
+    background-color: #ffc107;
+    color: #333;
+    border-radius: 50px;
+    padding: 0.4rem 0.6rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.add-to-cart-btn:hover {
+    background-color: #e0a800;
+    color: #fff;
+}
+
+/* ----- Save Button ----- */
+.save-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
+    border-radius: 50%;
+    border: 1.5px solid #dc3545;
+    background-color: rgba(255, 255, 255, 0.85);
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+.save-btn:hover {
+    background-color: #dc3545;
+    color: #fff;
+}
+.save-btn.saved {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+/* ----- Quick View Button ----- */
+.quick-view-btn {
+    background-color: #17a2b8;
+    color: #fff;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 50px;
+    transition: background-color 0.3s ease;
+}
+.quick-view-btn:hover {
+    background-color: #138496;
+}
+
+/* ----- Responsive Grid ----- */
+.row.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+/* ----- Toast Container ----- */
+#toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1080;
+}
+#toast-container .toast {
+    border-radius: 12px;
+    min-width: 250px;
+}
+
+/* ----- Stepper Buttons ----- */
+.stepper-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 50%;
+}
+.stepper-qty {
+    margin: 0 0.5rem;
+    font-weight: 600;
+}
+</style>
+
+<div id="toast-container"></div>
+
+<!-- ----- Categories ----- -->
+<div class="text-center mb-4">
+    <h2 class="mb-3">Explore Our Products</h2>
+    <div class="d-flex justify-content-center flex-wrap gap-2">
+        <a href="{% url 'detail' %}" class="category-pill {% if not selected_category %}active{% endif %}">All</a>
+        {% for cat in categories %}
+            <a href="{% url 'detail' %}?category={{ cat.choice }}" class="category-pill {% if selected_category == cat.choice %}active{% endif %}">
+                {{ cat.choice }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ----- Filters ----- -->
+<form method="get" id="filterForm" class="row g-2 justify-content-center align-items-center mb-4">
+    <div class="col-md-4 col-12">
+        <input type="text" class="form-control" name="search" placeholder="Search products" value="{{ search_query|default:'' }}">
+    </div>
+    <div class="col-md-2 col-12">
+        <button type="submit" class="btn btn-primary w-100">Search</button>
+    </div>
+
+    <div class="col-md-3 col-12">
+        <select class="form-select" name="sort_by" onchange="this.form.submit()">
+            <option value="">Sort By</option>
+            <option value="price_asc" {% if selected_sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+            <option value="price_desc" {% if selected_sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+            <option value="name_asc" {% if selected_sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+            <option value="newest" {% if selected_sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+        </select>
+    </div>
+</form>
+
+<!-- ----- Product Grid ----- -->
+<div class="row product-grid">
+    {% for product in products %}
+    <div class="product-item">
+        <div class="product-card">
+            <a href="{% url 'product_detail' product.id %}" class="text-decoration-none text-dark">
+                {% if product.product_photo %}
+                    <img src="{{ product.product_photo }}" alt="{{ product.product_name }}" class="product-img-fit">
+                {% else %}
+                    <div class="text-center text-muted py-5">No Image</div>
+                {% endif %}
+            </a>
+
+            <button type="button" class="save-btn {% if product.id in saved_product_ids %}saved{% endif %}" data-product-id="{{ product.id }}" onclick="toggleSave(this)">
+                <i class="bi bi-bookmark{% if product.id in saved_product_ids %}-fill{% endif %}"></i>
+            </button>
+
+            <div class="product-info mt-2">
+                <h5>{{ product.product_name }}</h5>
+                <p class="text-success fw-bold">₹{{ product.product_price }}</p>
+                <p class="text-muted small">Category: {{ product.category }}</p>
+                <p class="text-muted small">quantity:<strong> {{ product.quantity }}</strong></p>
+            </div>
+            <form method="post" action="{% url 'add_to_cart' product.id %}" class="buy-now-form mt-2">
+                {% csrf_token %}
+                <button type="submit" class="buy-now-btn">
+                    <i class="bi bi-lightning-fill fs-5"></i> Buy Now
+                </button>
+            </form>
+            <div class="d-flex gap-2 mt-2">
+                <button onclick="addToCart({{ product.id }})" class="add-to-cart-btn btn btn-warning btn-sm flex-grow-1" id="add-btn-{{ product.id }}">Add to Cart</button>
+                <div class="d-flex align-items-center d-none" id="stepper-{{ product.id }}">
+                    <button class="btn btn-sm btn-danger stepper-btn" onclick="updateQty({{ product.id }}, 'decrease')">-</button>
+                    <span class="stepper-qty" id="qty-{{ product.id }}">1</span>
+                    <button class="btn btn-sm btn-success stepper-btn" onclick="updateQty({{ product.id }}, 'increase')">+</button>
+                </div>
+                <button type="button" class="quick-view-btn btn btn-info btn-sm flex-grow-1" data-bs-toggle="modal" data-bs-target="#productQuickViewModal" onclick="loadQuickViewContent({{ product.id }})">
+                    <i class="bi bi-eye"></i> Quick View
+                </button>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+        <p class="text-center">No products found.</p>
+    {% endfor %}
+</div>
+
+<!-- Quick View Modal -->
+<div class="modal fade" id="productQuickViewModal" tabindex="-1" aria-labelledby="productQuickViewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="productQuickViewModalLabel">Product Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const urls = {
+    increaseQuantity: "{% url 'increase_quantity' 0 %}".replace('0/', ''),
+    decreaseQuantity: "{% url 'decrease_quantity' 0 %}".replace('0/', ''),
+    quickView: "{% url 'quick_view_product' 0 %}".replace('0/', ''),
+};
+
+// ----- Toast Helper -----
+function showToast(message, type='success') {
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) return;
+
+    const bgClass = {
+        'success':'text-bg-success',
+        'info':'text-bg-info',
+        'warning':'text-bg-warning',
+        'error':'text-bg-danger'
+    }[type] || 'text-bg-primary';
+
+    const icon = {
+        'success':'✅',
+        'info':'ℹ️',
+        'warning':'⚠️',
+        'error':'❌'
+    }[type] || '';
+
+    const toastHtml = `
+    <div class="toast ${bgClass} border-0" role="alert" data-bs-delay="2500" aria-live="polite" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">${icon} ${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>`;
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = toastHtml;
+    const toastEl = tempDiv.firstElementChild;
+    toastContainer.appendChild(toastEl);
+
+    const bsToast = new bootstrap.Toast(toastEl);
+    bsToast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+}
+
+// ----- Update Cart Icon -----
+function updateCartIconCount(count) {
+    const cartCount = document.getElementById('cart-count');
+    if (cartCount) {
+        const numCount = Number(count);
+        cartCount.textContent = numCount;
+        cartCount.style.display = numCount > 0 ? 'inline' : 'none';
+    }
+}
+
+// ----- Add To Cart -----
+function addToCart(productId) {
+    fetch(`${urls.increaseQuantity}${productId}/`, {
+        method: 'POST',
+        headers: {'X-Requested-With':'XMLHttpRequest','X-CSRFToken':getCookie('csrftoken')},
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            showToast(data.messages_html || `Added to cart!`, 'success');
+            updateCartIconCount(data.cart_count);
+            document.getElementById('qty-' + productId).innerText = data.quantity;
+            document.getElementById('add-btn-' + productId).classList.add('d-none');
+            document.getElementById('stepper-' + productId).classList.remove('d-none');
+        } else {
+            showToast(data.message || 'Failed to add to cart', 'error');
+        }
+    })
+    .catch(()=>showToast('Error adding to cart', 'error'));
+}
+
+// ----- Update Quantity -----
+function updateQty(productId, action) {
+    const url = action === 'increase' ? `${urls.increaseQuantity}${productId}/` : `${urls.decreaseQuantity}${productId}/`;
+    fetch(url, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':getCookie('csrftoken')}})
+    .then(res=>res.json())
+    .then(data=>{
+        if(data.quantity <= 0){
+            document.getElementById('stepper-'+productId).classList.add('d-none');
+            document.getElementById('add-btn-'+productId).classList.remove('d-none');
+            document.getElementById('qty-'+productId).innerText = 1;
+            showToast('Removed from cart', 'warning');
+        } else {
+            document.getElementById('qty-'+productId).innerText = data.quantity;
+            showToast('Quantity updated', 'info');
+        }
+        updateCartIconCount(data.cart_count);
+    })
+    .catch(()=>showToast('Failed to update quantity.', 'error'));
+}
+
+// ----- Quick View -----
+function loadQuickViewContent(productId) {
+    const modalBody = document.querySelector('#productQuickViewModal .modal-body');
+    modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Loading product details...</p></div>`;
+    fetch(`${urls.quickView}${productId}/`)
+    .then(res=>res.json())
+    .then(data=>{modalBody.innerHTML = data.html || '<p class="text-danger text-center">Failed to load product details.</p>';})
+    .catch(()=>{modalBody.innerHTML = '<p class="text-danger text-center">Error loading product details. Please try again.</p>';});
+}
+
+// ----- Save / Unsave -----
+function toggleSave(button) {
+    const productId = button.getAttribute('data-product-id');
+    if(!productId) return;
+    fetch(`/save/${productId}/`, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':getCookie('csrftoken')}})
+    .then(resp=>{
+        if(resp.status === 403){ showToast("Please login to save products", 'warning'); return null;}
+        return resp.json();
+    })
+    .then(data=>{
+        if(!data) return;
+        if(data.status==='added'){ button.classList.add('saved'); button.innerHTML='<i class="bi bi-bookmark-fill"></i>'; showToast(data.message,'success'); }
+        else if(data.status==='removed'){ button.classList.remove('saved'); button.innerHTML='<i class="bi bi-bookmark"></i>'; showToast(data.message,'info'); }
+        else { showToast(data.message || 'Unknown response','error'); }
+    })
+    .catch(()=>showToast('Failed to toggle saved status','error'));
+}
+
+// ----- CSRF & Cart Count -----
+function getCookie(name){
+    let cookieValue = null;
+    if(document.cookie && document.cookie!==''){
+        const cookies = document.cookie.split(';');
+        for(let cookie of cookies){
+            cookie=cookie.trim();
+            if(cookie.startsWith(name+'=')){
+                cookieValue = decodeURIComponent(cookie.substring(name.length+1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+    fetch("{% url 'cart_count' %}")
+        .then(resp=>resp.json())
+        .then(data=>updateCartIconCount(data.cart_count))
+        .catch(()=>console.error('Error fetching cart count'));
+
+    // Buy Now AJAX
+    document.querySelectorAll('.buy-now-form').forEach(form=>{
+        form.addEventListener('submit', function(e){
+            e.preventDefault();
+            const csrfToken = this.querySelector('[name=csrfmiddlewaretoken]').value;
+            fetch(this.action, {
+                method:'POST',
+                headers:{'X-CSRFToken':csrfToken,'X-Requested-With':'XMLHttpRequest'}
+            })
+            .then(res=>res.json())
+            .then(data=>{
+                if(data.status==='success'){
+                    const url = new URL(data.redirect_url, window.location.origin);
+                    url.searchParams.set('msg', data.message);
+                    window.location.href = url;
+                } else { showToast(data.message || 'Failed to buy now', 'error'); }
+            })
+            .catch(()=>showToast('Something went wrong','error'));
+        });
+    });
+});
+</script>
+{% endblock %}

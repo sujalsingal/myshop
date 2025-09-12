@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+
+# Virtual environment
+venv/
+env/
+
+# Django
+*.log
+*.pot
+db.sqlite3
+/staticfiles/
+media/
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+# Environment variables
+.env
+
+# Node / React (if frontend exists)
+node_modules/
+dist/
+build/

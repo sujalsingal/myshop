@@ -1,0 +1,131 @@
+{% extends 'ecommerce/base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(120deg, #2980b9, #8e44ad);
+        height: 100vh;
+        overflow: hidden;
+    }
+    .alert {
+        background: rgba(255, 0, 0, 0.15);
+        border: 1px solid rgba(255, 0, 0, 0.3);
+        color: #ffdddd;
+        font-weight: 500;
+        border-radius: 10px;
+    }
+    .animated-bg {
+        position: fixed;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.05) 1%, transparent 1%) repeat;
+        background-size: 40px 40px;
+        animation: move 10s linear infinite;
+        z-index: 0;
+    }
+
+    @keyframes move {
+        from { background-position: 0 0; }
+        to { background-position: 100px 100px; }
+    }
+
+    .glass-form {
+        position: relative;
+        z-index: 1;
+        max-width: 420px;
+        margin: 8% auto;
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: white;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .glass-form h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .form-control {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: white;
+    }
+
+    .form-control::placeholder {
+        color: #ddd;
+    }
+
+    .btn-primary {
+        background-color: #6c5ce7;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #a29bfe;
+    }
+
+    .toggle-btn {
+        color: white;
+        border-color: white;
+    }
+</style>
+
+<div class="animated-bg"></div>
+
+<div class="glass-form">
+    <h2>Login</h2>
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} text-center mt-2" role="alert">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label>Username</label>
+            <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Password</label>
+            <div class="input-group">
+                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+                <button type="button" class="btn btn-outline-light toggle-btn" id="togglePassword">👁️</button>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+
+        <div class="text-center mt-3">
+            Don't have an account? <a href="{% url 'register' %}" class="text-white">Register</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+
+    togglePassword.addEventListener('click', () => {
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+        togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
+    });
+</script>
+{% endblock %}
