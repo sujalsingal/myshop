@@ -57,8 +57,6 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "ecommerce",
-    "rest_framework",
-    "rest_framework_simplejwt",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
