@@ -42,13 +42,19 @@ STRIPE_PUBLISHABLE_KEY = config("STRIPE_PUBLISHABLE_KEY")
 # Database
 import dj_database_url
 
+
+
 DATABASES = {
-    "default": dj_database_url.config(
-        default=config("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'Sujalsingal%4012',  # @ → %40
+        'HOST': 'db.flpdmlyqzixxdclqfuta.supabase.co',
+        'PORT': '5432',
+    }
 }
+
 
 
 # Application definition
@@ -56,6 +62,8 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "ecommerce",
+    'rest_framework',
+    'rest_framework_simplejwt',
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -126,6 +134,9 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Static files
 STATIC_URL = "static/"

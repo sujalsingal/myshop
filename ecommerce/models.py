@@ -4,6 +4,7 @@ from django.db import models
 
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    
     address = models.TextField(blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
 
@@ -22,12 +23,16 @@ class Product(models.Model):
     product_name = models.CharField(max_length=255)
     product_price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.CharField(max_length=50)
-    product_photo = models.URLField()
+    product_photo = models.ImageField(upload_to="products/", blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.product_name
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["product_price"]),
+        ]
 
 class Saved(models.Model):
     product = models.ForeignKey(
@@ -86,8 +91,7 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"
 
-    class Meta:
-        unique_together = ("id", "user")
+ 
 
 
 class OrderItem(models.Model):

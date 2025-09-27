@@ -15,7 +15,7 @@
     {% if product.product_photo %}
 
     <div class="img-zoom-container" id="quickViewZoomContainer"> {# Added an ID to the container #}
-            <img id="quickViewProductImage" src="{{ product.product_photo }}" alt="{{ product.product_name }}" class="img-fluid rounded shadow-sm">
+            <img id="quickViewProductImage" src="{{ product.product_photo.url }}" alt="{{ product.product_name }}" class="img-fluid rounded shadow-sm">
         </div>
     {% else %}
         <div class="text-center text-muted py-5 border rounded bg-light">No Image Available</div>

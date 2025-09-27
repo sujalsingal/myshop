@@ -191,13 +191,13 @@ body {
 
 <!-- ----- Filters ----- -->
 <form method="get" id="filterForm" class="row g-2 justify-content-center align-items-center mb-4">
+    <input type="hidden" name="category" value="{{ selected_category }}">
     <div class="col-md-4 col-12">
         <input type="text" class="form-control" name="search" placeholder="Search products" value="{{ search_query|default:'' }}">
     </div>
     <div class="col-md-2 col-12">
         <button type="submit" class="btn btn-primary w-100">Search</button>
     </div>
-
     <div class="col-md-3 col-12">
         <select class="form-select" name="sort_by" onchange="this.form.submit()">
             <option value="">Sort By</option>
@@ -209,6 +209,7 @@ body {
     </div>
 </form>
 
+
 <!-- ----- Product Grid ----- -->
 <div class="row product-grid">
     {% for product in products %}
@@ -216,7 +217,7 @@ body {
         <div class="product-card">
             <a href="{% url 'product_detail' product.id %}" class="text-decoration-none text-dark">
                 {% if product.product_photo %}
-                    <img src="{{ product.product_photo }}" alt="{{ product.product_name }}" class="product-img-fit">
+                    <img src="{{ product.product_photo.url }}" alt="{{ product.product_name }}" class="product-img-fit">
                 {% else %}
                     <div class="text-center text-muted py-5">No Image</div>
                 {% endif %}
@@ -431,7 +432,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
                     window.location.href = url;
                 } else { showToast(data.message || 'Failed to buy now', 'error'); }
             })
-            .catch(()=>showToast('Something went wrong','error'));
+            .catch(()=>showToast('already in','error'));
         });
     });
 });

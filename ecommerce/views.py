@@ -32,15 +32,21 @@ def index(request):
 class ProductDetailView(DetailView):
     model = Product
     template_name = "ecommerce/product_detail.html"
-    context_object_name = "product"
     pk_url_kwarg = "product_id"
-
+    def get_queryset(self):
+        return Product.objects.prefetch_related(
+            Prefetch(
+                'reviews',
+                queryset=Review.objects.select_related('user')
+            )
+        )
+        
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         product = self.object
         reviews = product.reviews.all()
         context["reviews"] = reviews
-        context["review_count"] = reviews.count()
+        context["review_count"] =len(reviews)
         context["avg_rating"] = round(
             reviews.aggregate(Avg("rating"))["rating__avg"] or 0, 1
         )
@@ -76,7 +82,7 @@ class ProductListView(ListView):
     context_object_name = "products"
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().select_related("category")
         search_query = self.request.GET.get("search")
         selected_category = self.request.GET.get("category")
         sort_by = self.request.GET.get("sort_by")
@@ -85,13 +91,14 @@ class ProductListView(ListView):
         if search_query:
             queryset = queryset.filter(
                 Q(product_name__icontains=search_query)
+                | Q(product_name__istartswith=search_query)
                 | Q(category__choice__icontains=search_query)
             ).distinct()
         sort_map = {
             "price_asc": "product_price",
             "price_desc": "-product_price",
             "name_asc": "product_name",
-            "newest": "-id",
+            'newest': '-id'
         }
         if sort_by in sort_map:
             queryset = queryset.order_by(sort_map[sort_by])
@@ -211,9 +218,11 @@ def increase_quantity(request, product_id):
     return JsonResponse(
         {
             "status": "success",
+            
             "quantity": int(quantity),
             "item_total": float(item_total),
             "cart_total_items": sum(cart.values()),
+            "message": "Quantity updated"
         }
     )
 
@@ -238,12 +247,15 @@ def decrease_quantity(request, product_id):
         return JsonResponse(
             {
                 "status": "success",
+                
                 "quantity": int(quantity),
                 "item_total": float(item_total),
                 "cart_total_items": sum(cart.values()),
+                "message": "Quantity updated"
             }
         )
     return JsonResponse({"status": "error", "message": "Product not in cart"})
+
 
 
 @require_POST
@@ -296,7 +308,9 @@ def payment_success(request):
     cart = request.session.get("cart", {})
     if not cart:
         return redirect("index")
-
+    product_ids = list(cart.keys())
+    products = Product.objects.filter(id__in=product_ids).select_related('category')  # prefetch category if needed
+    product_map = {str(p.id): p for p in products}  
     total = Decimal("0.00")
     try:
         order = Order.objects.create(
@@ -305,13 +319,16 @@ def payment_success(request):
             payment_id=request.GET.get("session_id"),
             status="processing",
         )
-        for product_id, quantity in cart.items():
-            product = get_object_or_404(Product, id=product_id)
-            price = product.product_price
-            total += price * quantity
-            OrderItem.objects.create(
-                order=order, product=product, quantity=quantity, price=price
-            )
+        order_items = []
+        for pid, quantity in cart.items():
+            product = product_map.get(str(pid))
+            if product:
+                price = product.product_price
+                total += price * quantity
+                order_items.append(
+                    OrderItem(order=order, product=product, quantity=quantity, price=price)
+                )
+        OrderItem.objects.bulk_create(order_items)
     except Exception:
         messages.error(request, "There was a problem finalizing your order.")
         return redirect("view_cart")
@@ -356,30 +373,30 @@ def saved_items_view(request):
 def save_product(request, product_id):
     try:
         product = get_object_or_404(Product, id=product_id)
-        saved_item, created = Saved.objects.get_or_create(
-            user=request.user, product=product
-        )
-        if not created:
-            saved_item.delete()
+        saved_item, created = Saved.objects.get_or_create(user=request.user, product=product)
+        if created:
             return JsonResponse(
-                {
-                    "status": "removed",
-                    "message": f"{product.product_name} removed from saved items.",
-                }
-            )
-        return JsonResponse(
             {
                 "status": "added",
                 "message": f"{product.product_name} added to saved items.",
             }
         )
+        saved_item.delete()
+        return JsonResponse(
+            {
+                "status": "removed",
+                "message": f"{product.product_name} removed from saved items.",
+            }
+        )
+
+
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
 @require_POST
 def remove_saved(request, product_id):
-    saved_item = Saved.objects.filter(user=request.user, product_id=product_id).first()
+    saved_item = Saved.objects.filter(user=request.user, product_id=product_id)
     if saved_item:
         saved_item.delete()
     return JsonResponse({"status": "removed", "message": "removed from saved items."})

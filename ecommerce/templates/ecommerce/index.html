@@ -128,7 +128,13 @@
       <div class="product-card">
         {% if product.product_photo %}
           <a href="{% url 'product_detail' product.id %}">
-            <img src="{{ product.product_photo }}" alt="{{ product.product_name }}">
+           <img
+            src="{{ product.product_photo.url }}"
+            alt="{{ product.product_name }}"
+            class="img-fluid"
+            loading="lazy"
+            onerror="this.onerror=null; this.src='{% static 'images/placeholder.jpg' %}';"
+        >
           </a>
         {% else %}
           <div class="text-center text-muted py-5">No Image</div>

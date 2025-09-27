@@ -135,7 +135,7 @@
     <div class="saved-grid">
         {% for product in saved_products %}
             <div class="saved-card">
-                <img src="{{ product.product_photo }}" alt="{{ product.product_name }}">
+                <img src="{{ product.product_photo.url }}" alt="{{ product.product_name }}">
                 <div class="saved-info">
                     <h3>{{ product.product_name }}</h3>
                     <p class="price">₹{{ product.product_price }}</p>
@@ -230,5 +230,4 @@ document.querySelectorAll('.remove-btn').forEach(btn => {
 
 
 
-<link rel="stylesheet" href="{% static 'ecommerce/css/saved_items.css' %}">
 {% endblock %}

@@ -26,7 +26,7 @@
             <div class="card-body">
                 {% for item in order.items.all %}
                 <div class="d-flex align-items-center mb-3 flex-column flex-sm-row">
-                    <img src="{{ item.product.product_photo }}" alt="{{ item.product.product_name }}"
+                    <img src="{{ item.product.product_photo.url }}" alt="{{ item.product.product_name }}"
                          class="img-thumbnail me-3 mb-2 mb-sm-0" style="width:80px; height:80px; object-fit:cover;">
                     <div>
                         <h6 class="mb-1">

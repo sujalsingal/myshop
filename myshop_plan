@@ -1,365 +1,1137 @@
-# Creating a detailed PDF plan for MyShop backend enhancements including where to use AI tools.
-# The script will try to use reportlab to generate a nicely formatted PDF. If reportlab is not available,
-# it will fall back to a very simple PDF via fpdf. The final PDF will be saved to /mnt/data/myshop_backend_plan_ai_tools.pdf
-# and the notebook will output the path. This file will be available for download.
+I can't generate or send PDFs directly — but **I’ve made this easy for you**.
 
-from datetime import datetime
-content_title = "MyShop Backend Enhancement Plan — Detailed Steps + AI Tools Integration"
-date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S (Asia/Kolkata)")
+👇 Below is the **FULL PLAN in clean, copy-paste-ready Markdown format** — optimized for you to:
 
-# Long detailed content (multi-section). Tailor content to user request: day-by-day steps and AI tool guidance.
-content = f"""{content_title}
-
-Generated: {date_str}
-
-Table of Contents
-1. Executive Summary
-2. How to use this document (day-by-day workflow)
-3. Phase-by-phase detailed plan (Discovery → Ops → Advanced)
-4. Recommended AI tools and where to use them (detailed per task)
-5. Daily / Week-by-week suggested cadence (flexible)
-6. Templates, commands, and code snippets quick reference
-7. Acceptance criteria & checkpoints
-8. Appendices: Useful resources and checklist
+✅ Copy into **Google Docs** or **Microsoft Word**  
+✅ Click **File → Download → PDF**  
+✅ Print or save to your phone/tablet  
+✅ Check off tasks daily
 
 ---
-1) EXECUTIVE SUMMARY
-This document is a step-by-step, modular plan to enhance the MyShop backend into a scalable, maintainable, and production-ready system. It bundles technical tasks, operational tasks, testing, monitoring, and where and how to use AI tools to accelerate development without sacrificing quality. Use this as your master plan and check items off as you complete them.
 
-2) HOW TO USE THIS DOCUMENT
-- Work phase-by-phase. Each phase contains tasks, deliverables, acceptance criteria, and suggested AI tools to help.
-- The "Daily / Week-by-week" section gives a suggested cadence. You're free to go slower; the plan is modular.
-- Keep a running journal in the repository (CHANGELOG.md) to capture decisions and reasons for easier rollback.
+# 🚀 THE ULTIMATE 90-DAY DJANGO E-COMMERCE MASTER PLAN  
+## Turn `myshop` into a Job-Ready, Production-Grade Backend — Even as a 3rd-Year Student
 
-3) PHASE-BY-PHASE DETAILED PLAN
-
-PHASE 0 — DISCOVERY & SAFETY CHECK (Deliverables: Inventory, Staging, Backups, KPIs)
-Tasks:
-- Inventory: list apps, dependencies, infra, secrets. Create a spreadsheet of endpoints, DB size, and top-slow queries.
-- Create staging environment similar to production.
-- Full DB and media backup and restore test.
-- Define KPIs: request latency targets, error budget, expected daily requests, peak concurrent sessions.
-AI HELP:
-- Use AI (ChatGPT / Claude / Copilot) to auto-generate an inventory checklist by scanning README, Dockerfiles, and settings files (prompt the model with repo snippets).
-- Use GitHub Copilot or Tabnine while writing scripts to dump DB and automate backup tests.
-Acceptance:
-- Staging runs the current app and accepts fake transactions. Backup + restore verified.
-
-PHASE 1 — CODE HYGIENE & REPO STRUCTURE (Deliverables: modular apps, linting, settings)
-Tasks:
-- Reorganize Django apps (products, orders, users, payments, reviews, notifications, search).
-- Add pre-commit hooks (black, isort, flake8), CI lint step.
-- Move secrets to env and create settings/base, dev, prod pattern.
-AI HELP:
-- Use Copilot / ChatGPT to create consistent settings stubs and example .env templates.
-- Use AI-assisted linters or code analyzers (Snyk, GitHub CodeQL) for dependency vulnerabilities.
-Acceptance:
-- CI runs lint and tests on PRs. Repo has clear README and setup steps.
-
-PHASE 2 — API LAYER (DRF) & CONTRACTS (Deliverables: OpenAPI, Postman collection)
-Tasks:
-- Implement DRF, versioned API (/api/v1/...), serializers, viewsets, routers.
-- Document APIs (drf-spectacular). Provide Postman collection and API tests.
-AI HELP:
-- Use ChatGPT / Copilot to scaffold serializers and viewsets quickly (paste model definitions and ask for serializers).
-- Use AI to generate OpenAPI examples and sample responses for documentation.
-Acceptance:
-- Frontend can integrate using OpenAPI spec, tests for basic flows pass.
-
-PHASE 3 — DATABASE & MODELING (Postgres) (Deliverables: migrations, indexes)
-Tasks:
-- Migrate to PostgreSQL if needed; add indexes for heavy queries; use select_related/prefetch and UUIDs if required.
-AI HELP:
-- Use Copilot/ChatGPT to analyze slow SQL query samples and suggest indexes or ORM refactors. Provide query logs as input to the model.
-- Use AI code generation to create migration scripts skeletons and SQL to create/verify indexes.
-Acceptance:
-- Query improvements measurable on staging; N+1 issues fixed on critical endpoints.
-
-PHASE 4 — CACHING & CDN (Redis + Cloudfront/Cloudflare)
-Tasks:
-- Configure Redis for caching and sessions. Setup CDN for static & media.
-- Define cache key strategy and invalidation rules.
-AI HELP:
-- Use ChatGPT to generate cache key naming standards and sample Django caching decorators.
-- Use AI to create scripts (Celery tasks) to invalidate caches on product update events.
-Acceptance:
-- Repeated product listing hits are served from cache on staging.
-
-PHASE 5 — BACKGROUND JOBS (Celery + Redis)
-Tasks:
-- Install Celery, define queues, ensure idempotent tasks, configure retries and dead-lettering.
-AI HELP:
-- Use Copilot to scaffold Celery app file, tasks, and to convert synchronous routines (like image resizing, report generation) into idempotent tasks.
-- Use ChatGPT to create retry policies and worker scaling suggestions based on queue depth logs.
-Acceptance:
-- Heavy tasks run asynchronously; web requests are fast and non-blocking.
-
-PHASE 6 — MEDIA & FILES (S3 / Cloudinary)
-Tasks:
-- Move static & media to S3, route through CDN. Implement image resizing pipeline.
-AI HELP:
-- Use AI to produce Django-storages settings and a Celery pipeline for thumbnail generation.
-Acceptance:
-- New uploads stored in S3 and served via CDN.
-
-PHASE 7 — PAYMENTS & ORDER LIFECYCLE
-Tasks:
-- Integrate Stripe/Razorpay, implement webhook handlers with idempotency, design order state machine.
-AI HELP:
-- Use AI to draft robust webhook handler code that verifies signatures and uses idempotency keys.
-- Use ChatGPT to produce test cases and sample payloads for webhook replay testing.
-Acceptance:
-- Webhooks processed idempotently and payments reconcile against orders.
-
-PHASE 8 — SEARCH & RECOMMENDATIONS
-Tasks:
-- Add Elasticsearch or Postgres full-text for search; build nightly recompute for recommendations.
-AI HELP:
-- Use AI to craft Elasticsearch mapping templates and to generate simple collaborative-filtering pseudocode for recommendations to start with.
-Acceptance:
-- Search returns decent results; recommendations are returning results that can be iterated on.
-
-PHASE 9 — OBSERVABILITY & LOGGING
-Tasks:
-- Add Sentry for errors, Prometheus for metrics, Grafana dashboards, structured logging to ELK/CloudWatch.
-AI HELP:
-- Use ChatGPT to create Sentry integration snippets, Prometheus exporters, and Grafana dashboard JSON skeletons.
-- Use AI to help write alerting rules (example Prometheus alert expressions) and templates for incident reports.
-Acceptance:
-- Alerts trigger on errors, dashboards show traffic and latency baselines.
-
-PHASE 10 — SECURITY & COMPLIANCE
-Tasks:
-- TLS everywhere, CSP, CORS, secrets rotation, dependency scanning, pen-test for checkout flows.
-AI HELP:
-- Use AI to create security checklists, example CSP headers, and to auto-generate threat models from your architecture diagram.
-Acceptance:
-- No critical OWASP issues in scans; secure payment flow confirmed.
-
-PHASE 11 — TESTING & LOAD TESTING
-Tasks:
-- Unit tests, integration tests for payment flows, load testing (Locust).
-AI HELP:
-- Use AI to generate test scaffolding and sample test cases for PyTest and Locust scenarios (checkout under load).
-Acceptance:
-- Tests run in CI and Locust baseline measured in staging.
-
-PHASE 12 — CI/CD & IaC
-Tasks:
-- Docker multi-stage builds, GitHub Actions for lint/test/build, Terraform/CloudFormation for infra.
-AI HELP:
-- Use AI to generate CI pipelines, Dockerfile content, and Terraform module skeletons. Use Copilot to quickly iterate on pipeline steps.
-Acceptance:
-- CI pipeline builds and deploys to staging; infra provisioning reproducible.
-
-PHASE 13 — DEPLOYMENT & SCALING
-Tasks:
-- Choose between managed services or K8s; add pgbouncer and read replicas if needed.
-AI HELP:
-- Use AI to suggest deployment templates (Helm charts) and scaling rules based on metrics; it can help convert human intent into manifest templates ready for minor edits.
-Acceptance:
-- Able to scale web and worker tiers independently.
-
-4) RECOMMENDED AI TOOLS (DETAILED & WHERE TO USE THEM)
-Below is a categorized list of AI tools and exactly where to use them in the project. Use these tools as accelerators, not as blind autopilot — always review generated code.
-
-A) Code generation, autocompletion & scaffolding
-- GitHub Copilot / Copilot for Teams
-  * Use while writing serializers, viewsets, migration helpers, and tests.
-  * Use for generating boilerplate Dockerfiles, GitHub Actions workflows, and k8s manifests.
-- Tabnine / Codeium / Amazon CodeWhisperer
-  * Helpful for offline IDE completions and multi-language projects.
-- How to use:
-  * Prompt: include short context + example of model or function and ask for a serializer or test.
-
-B) Large language models for architecture, designs & explanations
-- ChatGPT (OpenAI), Claude (Anthropic), Gemini (Google)
-  * Use these for brainstorming architecture alternatives, writing runbooks, generating SQL index suggestions (feed the slow query), and drafting documentation.
-- How to use:
-  * Paste non-sensitive code or abstract descriptions and ask for options, risks, and alternative approaches.
-
-C) Automated code review & security scanning
-- Snyk, Dependabot, GitHub CodeQL, DeepSource
-  * Use for dependency vulnerability scanning, static analysis, and automated fixes or PRs.
-- How to use:
-  * Integrate in CI to run on every PR. Review suggested fixes manually.
-
-D) Test generation & load testing assistance
-- ChatGPT / Copilot for unit test templates.
-- K6 Cloud / Locust for load scripts. Use AI to craft realistic user behavior scenarios (browsing, search, checkout).
-- How to use:
-  * Provide endpoint list and metrics; ask AI to generate realistic Locust scenarios with proper pacing and randomized inputs.
-
-E) Observability & incident response helpers
-- AI can draft Prometheus alert rules and Grafana dashboard templates.
-- Use ChatGPT to generate incident playbooks and RCA templates from logs & traces.
-- How to use:
-  * Feed sanitized traces or error messages to AI for structured RCA drafts.
-
-F) Data, search, & recommendations
-- Use Python ML helpers (OpenAI embeddings, Hugging Face inference API, or Elasticsearch learning-to-rank).
-- Use AI to prototype product similarity using embeddings (product description embedding, cosine similarity).
-- How to use:
-  * Produce embeddings offline (batch), store them, compute nearest neighbors for recommendations; use AI to write prototype scripts and to tune vector similarity thresholds.
-
-G) Content & marketing automation
-- Use AI copywriting (ChatGPT, Jasper) for product descriptions, SEO titles, and email templates (promotions, cart reminder).
-- How to use:
-  * Batch-produce descriptions, then human-edit for correctness. Store original product attributes and generated suggestions in admin UI for quick approve/publish workflow.
-
-H) Testing & QA automation
-- Use AI to create test cases and to convert bug reports into reproducible steps.
-- Tools: Testim, Functionize (commercial) or AI-assisted test generation using local models.
-- How to use:
-  * Convert issue description into step-by-step test scripts or Playwright tests via AI prompts.
-
-I) Cost & infra optimization
-- Use AI to audit infra costs and generate suggestions (right-size instances, use spot instances) — many cloud consoles also provide cost recommendations; AI can help turn them into action items.
-- How to use:
-  * Provide billing summaries (non-sensitive) to AI for suggestions; then confirm in cloud console.
-
-Notes on data privacy and secrets:
-- Do not paste secrets, private keys, or raw payment webhook payloads containing secrets into public LLM prompts.
-- Use non-sensitive examples or sanitized logs when interacting with external AI models.
-
-5) DAILY / WEEK-BY-WEEK SUGGESTED CADENCE (FLEXIBLE)
-This is a suggested cadence; adjust to your schedule. Each line is a suggested block of work you can complete in a day or two depending on complexity.
-
-Week 1 — Discovery & Setup (Day-by-day)
-Day 1: Repo inventory, create issues board, staging setup, backup test.
-Day 2: Setup pre-commit, linters, and CI skeleton; add README improvements.
-Day 3: Create settings split (dev/prod), move secrets into env templates.
-Day 4: Scaffold DRF and basic API routes (products list, product detail).
-Day 5: Migrate to PostgreSQL locally and run migrations on staging.
-
-Week 2 — API & DB hardening
-Day 6: Implement serializers & viewsets for products and orders (use Copilot).
-Day 7: Add pagination, filtering, and DRF throttling for login endpoints.
-Day 8: Add select_related/prefetch for product list and optimize queries.
-Day 9: Add Redis caching for product listing and configure simple cache keys.
-Day 10: Set up Celery basics + a sample async task (send order email).
-
-Week 3 — Payments, Media, & Observability
-Day 11: Integrate Stripe/Razorpay sandbox and webhook handler skeleton.
-Day 12: Move media to S3 or configure Cloudinary; wire admin uploads to CDN.
-Day 13: Add Sentry and a Prometheus exporter; create basic Grafana dashboard templates.
-Day 14: Write unit tests for payment webhook handler and checkout flow.
-Day 15: Run a small-scale load test for product listing (Locust) and fix bottlenecks.
-
-Week 4 — Search, Recommendations, and Harden
-Day 16: Prototype search (Postgres full-text or Elasticsearch).
-Day 17: Build a simple recommendations script using embeddings (AI-assisted).
-Day 18: Add more integration tests, and start performance tuning queries and caches.
-Day 19: Security sweep: CSP, CORS, rate limiting, dependency updates.
-Day 20: Prepare deployment pipeline, finalize Dockerfile & GitHub Actions.
-
-6) TEMPLATES, COMMANDS & SNIPPETS (Quick reference)
-- Docker build (local):
-  docker build -t myshop:local .
-- Run dev with docker-compose:
-  docker compose up --build
-- Backup Postgres:
-  pg_dump -U $PGUSER -h $PGHOST $PGDATABASE > dump.sql
-- Restore:
-  psql -U $PGUSER -h $PGHOST $PGDATABASE < dump.sql
-
-7) ACCEPTANCE CRITERIA & CHECKPOINTS
-- Phase-completion checklist for each phase (deliverables tested in staging and documented).
-- KPIs review: check latency and error rate before and after major changes.
-- Rollback plan validated for DB migrations.
-
-8) APPENDICES & CHECKLISTS
-- Security checklist (TLS, secure cookies, CSP, CORS, rate-limiting)
-- Backup checklist (daily backups + weekly snapshots)
-- Release checklist (run migrations, run tests, health check)
+> “Build → Ship → Learn → Repeat — One Week at a Time”
 
 ---
-End of document
-"""
 
-# Try to create PDF using reportlab; if not available, fallback to fpdf.
+## 📌 TABLE OF CONTENTS
 
-output_path = "/mnt/data/myshop_backend_plan_ai_tools.pdf"
+1. 🧭 Introduction & Mindset  
+2. 🛠 Tech Stack & Tools You’ll Master  
+3. 📅 Phase 0: Prep & Setup (Days 1–3)  
+4. 📅 Phase 1: Data + Models + Stock (Days 4–14)  
+   - Week 1: Product + Category + Stock  
+   - Week 2: Import Data + Download Images  
+5. 📅 Phase 2: Frontend + UX + Cart (Days 15–28)  
+   - Week 3: Cart + Checkout + Stock Checks  
+   - Week 4: Search + Filter + Pagination  
+6. 📅 Phase 3: API Layer — DRF (Days 29–42)  
+   - Week 5: DRF Setup + Product API  
+   - Week 6: API Filtering + Pagination  
+7. 📅 Phase 4: Docker + Deployment (Days 43–56)  
+   - Week 7: Dockerize  
+   - Week 8: Deploy to Render  
+8. 📅 Phase 5: Tasks + Monitoring (Days 57–70)  
+   - Week 9: Celery + Redis  
+   - Week 10: Sentry + Logging  
+9. 📅 Phase 6: Testing + CI/CD (Days 71–84)  
+   - Week 11: Testing  
+   - Week 12: CI/CD with GitHub Actions  
+10. 📅 Phase 7: Portfolio + Resume (Days 85–90)  
+11. 🎓 Final Checklist — Are You Job Ready?  
+12. 🧭 Start Today — Phase 1, Week 1 Tasks  
+13. ❤️ Final Encouragement
 
-try:
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.units import mm
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
-    from reportlab.pdfgen import canvas
-    import textwrap
+---
 
-    # Register a basic font
-    try:
-        pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
-        font_name = 'DejaVuSans'
-    except Exception:
-        font_name = 'Helvetica'
+## 1. 🧭 INTRODUCTION & MINDSET
 
-    c = canvas.Canvas(output_path, pagesize=A4)
-    width, height = A4
-    margin = 20 * mm
-    max_width = width - 2*margin
-    x = margin
-    y = height - margin
+> “You are not ‘just a student’ — you are an engineer in the making.”
 
-    # Title
-    c.setFont(font_name, 14)
-    c.drawString(x, y, content_title)
-    y -= 10 * mm
-    c.setFont(font_name, 9)
-    c.drawString(x, y, f"Generated: {date_str}")
-    y -= 8 * mm
+This plan is designed for **you** — a 3rd-year student who:
+- ✅ Has built a basic CRUD app
+- ✅ Understands Python + Django basics
+- ✅ Wants to become job-ready
+- ✅ Is willing to learn, build, and ship
 
-    # Prepare text object for body
-    text = c.beginText()
-    text.setTextOrigin(x, y)
-    text.setFont(font_name, 10)
-    wrapper = textwrap.TextWrapper(width=110)
-    for paragraph in content.split("\n\n"):
-        lines = []
-        for line in paragraph.split("\n"):
-            if not line.strip():
-                lines.append("")
-            else:
-                wrapped = wrapper.wrap(line)
-                if not wrapped:
-                    lines.append("")
-                else:
-                    lines.extend(wrapped)
-        for ln in lines:
-            text.textLine(ln)
-            # move to next page if needed
-            if text.getY() < margin:
-                c.drawText(text)
-                c.showPage()
-                text = c.beginText()
-                text.setTextOrigin(x, height - margin)
-                text.setFont(font_name, 10)
-        # blank line between paragraphs
-        text.textLine("")
-    c.drawText(text)
-    c.save()
-    result = {"path": output_path, "method": "reportlab"}
-except Exception as e_reportlab:
-    try:
-        # fallback to fpdf
-        from fpdf import FPDF
-        pdf = FPDF()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        for paragraph in content.split("\n\n"):
-            pdf.multi_cell(0, 6, paragraph)
-            pdf.ln()
-        pdf.output(output_path)
-        result = {"path": output_path, "method": "fpdf", "error_reportlab": str(e_reportlab)}
-    except Exception as e_fpdf:
-        # final fallback: write markdown to file (user asked PDF but we'll provide md if PDF creation fails)
-        md_path = "/mnt/data/myshop_backend_plan_ai_tools.md"
-        with open(md_path, "w", encoding="utf-8") as f:
-            f.write(content)
-        result = {"path": md_path, "method": "markdown_fallback", "error_reportlab": str(e_reportlab), "error_fpdf": str(e_fpdf)}
+You’ll build a **real e-commerce backend** — not a toy project.  
+You’ll learn tools used by professionals — Docker, DRF, Celery, Stripe, CI/CD.  
+You’ll deploy it live — and put it on your resume.
 
-result
+This is not “too much” — this is **exactly what gets you hired**.
 
+---
+
+## 2. 🛠 TECH STACK & TOOLS YOU’LL MASTER
+
+| Category          | Tools & Libraries                          |
+|-------------------|--------------------------------------------|
+| Language          | Python 3.11+                               |
+| Framework         | Django 5.x                                 |
+| API               | Django REST Framework (DRF)                |
+| Auth              | JWT (rest_framework_simplejwt)             |
+| Database          | PostgreSQL (via Docker/Render)             |
+| ORM               | Django ORM                                 |
+| Caching           | Redis (via django-redis)                   |
+| Tasks             | Celery + Redis                             |
+| Payments          | Stripe                                     |
+| Deployment        | Docker, Render.com                         |
+| CI/CD             | GitHub Actions                             |
+| Monitoring        | Sentry                                     |
+| Testing           | pytest, factory_boy, coverage              |
+| Frontend          | Django Templates + HTMX (optional React)   |
+| DevOps            | Gunicorn, Whitenoise, Nginx (Render)       |
+| Secrets           | python-decouple, .env                      |
+| Version Control   | Git + GitHub                               |
+
+---
+
+## 3. 📅 PHASE 0: PREP & SETUP (DAYS 1–3)
+
+> “Lay a clean foundation — no tech debt”
+
+### 🎯 GOAL
+- Clean GitHub repo
+- Proper Django project structure
+- Environment variables setup
+- Basic logging
+
+### ✅ TASKS
+
+1. ✅ **Create GitHub Repo**
+   - Name: `myshop-django-ecommerce`
+   - Add README.md, .gitignore (Python, Django, VS Code)
+   - Initialize with `git init`
+
+2. ✅ **Project Structure**
+   ```
+   myshop/
+   ├── manage.py
+   ├── myshop/          # settings, urls, wsgi
+   ├── ecommerce/       # main app
+   ├── data_import/     # for scripts
+   ├── templates/
+   ├── static/
+   └── media/           # for uploaded images
+   ```
+
+3. ✅ **Install python-decouple**
+   ```bash
+   pip install python-decouple
+   ```
+
+4. ✅ **Create .env + .env.example**
+   ```env
+   # .env.example
+   SECRET_KEY=your-secret-key
+   DEBUG=True
+   DATABASE_URL=sqlite:///db.sqlite3
+   STRIPE_SECRET_KEY=your_stripe_key
+   STRIPE_PUBLISHABLE_KEY=your_stripe_key
+   ```
+
+5. ✅ **Update settings.py**
+   ```python
+   from decouple import config
+
+   SECRET_KEY = config('SECRET_KEY')
+   DEBUG = config('DEBUG', default=False, cast=bool)
+   DATABASES = {
+       'default': {
+           'ENGINE': 'django.db.backends.sqlite3',
+           'NAME': BASE_DIR / 'db.sqlite3',
+       }
+   }
+   ```
+
+6. ✅ **Add Basic Logging**
+   ```python
+   LOGGING = {
+       'version': 1,
+       'disable_existing_loggers': False,
+       'handlers': {
+           'console': {
+               'class': 'logging.StreamHandler',
+           },
+       },
+       'loggers': {
+           'django': {
+               'handlers': ['console'],
+               'level': 'INFO',
+           },
+       },
+   }
+   ```
+
+### ✅ DELIVERABLE
+- [ ] Clean GitHub repo
+- [ ] `.env.example` file
+- [ ] Settings ready for Docker later
+
+---
+
+## 4. 📅 PHASE 1: DATA + MODELS + STOCK (DAYS 4–14)
+
+> “Get your data right — everything else follows”
+
+---
+
+### ✅ WEEK 1: PRODUCT + CATEGORY + STOCK (DAYS 4–7)
+
+#### 🎯 GOAL
+- Production-ready models with 7 categories
+- Simple stock management
+- Image handling (local + fallback)
+
+#### ✅ TASKS
+
+1. ✅ **Finalize Category Model**
+   ```python
+   # models.py
+   class Category(models.Model):
+       CATEGORY_CHOICES = [
+           ('vegetables', 'Vegetables'),
+           ('sweets', 'Sweets'),
+           ('indian_sweets', 'Indian Sweets'),
+           ('toys', 'Toys'),
+           ('dairy', 'Dairy'),
+           ('fruits', 'Fruits'),
+           ('organics', 'Organics'),
+       ]
+       name = models.CharField(max_length=20, choices=CATEGORY_CHOICES, unique=True)
+
+       def __str__(self):
+           return self.get_name_display()
+
+       def product_count(self):
+           return self.products.count()
+   ```
+
+2. ✅ **Update Product Model**
+   ```python
+   class Product(models.Model):
+       product_name = models.CharField(max_length=255)
+       product_price = models.DecimalField(max_digits=10, decimal_places=2)
+       quantity = models.CharField(max_length=100)  # "500g", "1 pc"
+       stock = models.PositiveIntegerField(default=0)  # ← NEW
+       unit_type = models.CharField(
+           max_length=20,
+           choices=[
+               ('weight', 'Weight'),
+               ('piece', 'Piece'),
+               ('volume', 'Volume'),
+               ('combo', 'Combo'),
+               ('other', 'Other'),
+           ],
+           default='other'
+       )
+       external_image_url = models.URLField(blank=True, null=True)
+       product_photo = models.ImageField(upload_to='products/', blank=True, null=True)
+       category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
+       is_active = models.BooleanField(default=True)
+       created_at = models.DateTimeField(auto_now_add=True)
+
+       def __str__(self):
+           status = "In Stock" if self.stock > 0 else "Out of Stock"
+           return f"{self.product_name} ({self.quantity}) — {self.stock} units {status}"
+   ```
+
+3. ✅ **Run Migrations**
+   ```bash
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
+
+4. ✅ **Create 7 Categories via Shell**
+   ```bash
+   python manage.py shell
+   ```
+   ```python
+   from ecommerce.models import Category
+   categories = [
+       ('vegetables', 'Vegetables'),
+       ('sweets', 'Sweets'),
+       ('indian_sweets', 'Indian Sweets'),
+       ('toys', 'Toys'),
+       ('dairy', 'Dairy'),
+       ('fruits', 'Fruits'),
+       ('organics', 'Organics'),
+   ]
+   for code, display in categories:
+       Category.objects.get_or_create(name=code)
+   exit()
+   ```
+
+5. ✅ **Update Admin.py**
+   ```python
+   @admin.register(Category)
+   class CategoryAdmin(admin.ModelAdmin):
+       list_display = ['name', 'get_name_display', 'product_count']
+
+   @admin.register(Product)
+   class ProductAdmin(admin.ModelAdmin):
+       list_display = ['product_name', 'category', 'stock', 'is_active']
+       list_filter = ['category', 'is_active', 'stock']
+       list_editable = ['stock', 'is_active']
+       actions = ['mark_out_of_stock']
+
+       def mark_out_of_stock(self, request, queryset):
+           queryset.update(stock=0)
+   ```
+
+6. ✅ **Test in Admin**
+   - Go to `/admin`
+   - Verify 7 categories
+   - Add 1 test product
+
+#### ✅ DELIVERABLE
+- [ ] Clean models with stock + categories
+- [ ] 7 categories created
+- [ ] Admin shows stock + editable
+
+---
+
+### ✅ WEEK 2: IMPORT DATA + DOWNLOAD IMAGES (DAYS 8–14)
+
+#### 🎯 GOAL
+- Migrate Supabase data → local images
+- Fallback to external URLs if needed
+
+#### ✅ TASKS
+
+1. ✅ **Export CSV from Supabase SQL Editor**
+   ```sql
+   SELECT id, product_name, product_price, quantity, category, product_photo FROM products;
+   ```
+   → Download as `supabase_products.csv`
+
+2. ✅ **Create `download_supabase_images.py`**
+   ```python
+   # download_supabase_images.py
+   import csv
+   import os
+   import requests
+   from urllib.parse import urlparse
+   from pathlib import Path
+
+   CSV_FILE = "supabase_products.csv"
+   IMAGE_DIR = "downloaded_images"
+   Path(IMAGE_DIR).mkdir(exist_ok=True)
+
+   def download_image(image_url, product_id, product_name):
+       if not image_url or not image_url.startswith('http'):
+           return None
+       try:
+           response = requests.get(image_url, timeout=10)
+           if response.status_code == 200:
+               ext = os.path.splitext(urlparse(image_url).path)[1].lower()
+               if ext not in ['.jpg', '.jpeg', '.png', '.webp']:
+                   ext = '.jpg'
+               safe_name = "".join(c if c.isalnum() else "_" for c in product_name[:30])
+               filename = f"{product_id}_{safe_name}{ext}"
+               filepath = os.path.join(IMAGE_DIR, filename)
+               with open(filepath, 'wb') as f:
+                   f.write(response.content)
+               print(f"✅ {filename}")
+               return filename
+       except Exception as e:
+           print(f"❌ {image_url}: {e}")
+       return None
+
+   with open(CSV_FILE, 'r', encoding='utf-8') as f:
+       reader = csv.DictReader(f)
+       for row in reader:
+           download_image(row['product_photo'], row['id'], row['product_name'])
+   ```
+
+3. ✅ **Run Script**
+   ```bash
+   python download_supabase_images.py
+   ```
+
+4. ✅ **Copy Images to Django Media**
+   ```bash
+   cp -r downloaded_images/* myshop/media/products/
+   ```
+
+5. ✅ **Update Product Records**
+   Use Django shell or write a script to set `product_photo` field.
+
+6. ✅ **Update Template with Fallback**
+   ```html
+   <img src="
+       {% if product.product_photo %}
+           {{ product.product_photo.url }}
+       {% elif product.external_image_url %}
+           {{ product.external_image_url }}
+       {% else %}
+           {% static 'images/placeholder.jpg' %}
+       {% endif %}
+   " loading="lazy">
+   ```
+
+#### ✅ DELIVERABLE
+- [ ] All products imported
+- [ ] All images downloaded locally
+- [ ] Fallback logic in templates
+
+---
+
+## 5. 📅 PHASE 2: FRONTEND + UX + CART (DAYS 15–28)
+
+> “Make it usable — then make it beautiful”
+
+---
+
+### ✅ WEEK 3: CART + CHECKOUT + STOCK CHECKS (DAYS 15–21)
+
+#### 🎯 GOAL
+- Bulletproof cart logic with stock validation
+
+#### ✅ TASKS
+
+1. ✅ **Update `add_to_cart` View**
+   ```python
+   @require_POST
+   def add_to_cart(request, product_id):
+       product = get_object_or_404(Product, pk=product_id, is_active=True)
+       if product.stock <= 0:
+           return JsonResponse({"error": "Out of stock"}, status=400)
+       # ... rest of logic ...
+   ```
+
+2. ✅ **Update `payment_success`**
+   ```python
+   @transaction.atomic
+   def payment_success(request):
+       for product_id, qty in cart.items():
+           product = Product.objects.select_for_update().get(id=product_id)
+           if product.stock < qty:
+               raise ValueError("Not enough stock")
+           product.stock -= qty
+           product.save()
+           # ... create OrderItem ...
+   ```
+
+3. ✅ **Update Templates**
+   ```html
+   {% if product.stock > 0 %}
+       <button>Add to Cart</button>
+   {% else %}
+       <span>Out of Stock</span>
+   {% endif %}
+   ```
+
+4. ✅ **Write Tests**
+   ```python
+   def test_cannot_order_out_of_stock(self):
+       product.stock = 0
+       product.save()
+       # assert add_to_cart fails
+   ```
+
+#### ✅ DELIVERABLE
+- [ ] Cart blocks out-of-stock items
+- [ ] Orders deduct stock safely
+- [ ] UI shows stock status
+
+---
+
+### ✅ WEEK 4: SEARCH + FILTER + PAGINATION (DAYS 22–28)
+
+#### 🎯 GOAL
+- Fast, filterable product browsing
+
+#### ✅ TASKS
+
+1. ✅ **Add Search in ProductListView**
+   ```python
+   def get_queryset(self):
+       qs = Product.objects.filter(is_active=True)
+       if q := self.request.GET.get('search'):
+           qs = qs.filter(product_name__icontains=q)
+       return qs
+   ```
+
+2. ✅ **Add Category Filter**
+   ```python
+   if cat := self.request.GET.get('category'):
+       qs = qs.filter(category__name=cat)
+   ```
+
+3. ✅ **Add Pagination**
+   ```python
+   class ProductListView(ListView):
+       paginate_by = 20
+   ```
+
+4. ✅ **Add Indexes**
+   ```python
+   class Meta:
+       indexes = [
+           models.Index(fields=['category']),
+           models.Index(fields=['is_active', 'stock']),
+       ]
+   ```
+
+#### ✅ DELIVERABLE
+- [ ] `/products/?search=mango&category=fruits`
+- [ ] Paginated, fast product list
+
+---
+
+## ➡️ CONTINUED IN NEXT MESSAGE (Due to length limits)
+
+I’ll send **Part 2** right away — covering:
+
+- Phase 3: DRF API
+- Phase 4: Docker + Deployment
+- Phase 5: Celery + Sentry
+- Phase 6: Testing + CI/CD
+- Phase 7: Portfolio
+- Final Checklist
+- Daily Start Guide
+
+
+
+
+✅ **Here’s Part 2 of your Ultimate 90-Day Django E-Commerce Master Plan — ready for you to copy into Google Docs or Word → Save as PDF → Print or Study Daily.**
+
+---
+
+## 6. 📅 PHASE 3: API LAYER — DRF (DAYS 29–42)
+
+> “Expose your backend — ready for React, mobile, or third parties”
+
+---
+
+### ✅ WEEK 5: DRF SETUP + PRODUCT API (DAYS 29–35)
+
+#### 🎯 GOAL
+- REST API for products + categories
+- JWT Auth
+- Postman testing
+
+#### ✅ TASKS
+
+1. ✅ **Install DRF + JWT**
+   ```bash
+   pip install djangorestframework djangorestframework-simplejwt
+   ```
+
+2. ✅ **Add to `settings.py`**
+   ```python
+   INSTALLED_APPS += ['rest_framework', 'rest_framework_simplejwt']
+
+   REST_FRAMEWORK = {
+       'DEFAULT_AUTHENTICATION_CLASSES': (
+           'rest_framework_simplejwt.authentication.JWTAuthentication',
+       ),
+       'DEFAULT_PERMISSION_CLASSES': (
+           'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+       ),
+   }
+   ```
+
+3. ✅ **Create `serializers.py`**
+   ```python
+   from rest_framework import serializers
+   from .models import Product, Category
+
+   class CategorySerializer(serializers.ModelSerializer):
+       class Meta:
+           model = Category
+           fields = ['id', 'name', 'get_name_display']
+
+   class ProductSerializer(serializers.ModelSerializer):
+       category = CategorySerializer()
+       image_url = serializers.SerializerMethodField()
+
+       class Meta:
+           model = Product
+           fields = [
+               'id', 'product_name', 'product_price', 'quantity',
+               'stock', 'image_url', 'category', 'is_active'
+           ]
+
+       def get_image_url(self, obj):
+           if obj.product_photo:
+               return self.context['request'].build_absolute_uri(obj.product_photo.url)
+           elif obj.external_image_url:
+               return obj.external_image_url
+           return None
+   ```
+
+4. ✅ **Create `api_views.py`**
+   ```python
+   from rest_framework.viewsets import ModelViewSet
+   from .models import Product, Category
+   from .serializers import ProductSerializer, CategorySerializer
+
+   class ProductViewSet(ModelViewSet):
+       queryset = Product.objects.filter(is_active=True)
+       serializer_class = ProductSerializer
+
+   class CategoryViewSet(ModelViewSet):
+       queryset = Category.objects.all()
+       serializer_class = CategorySerializer
+   ```
+
+5. ✅ **Add to `urls.py`**
+   ```python
+   from rest_framework.routers import DefaultRouter
+   from . import api_views
+
+   router = DefaultRouter()
+   router.register(r'products', api_views.ProductViewSet)
+   router.register(r'categories', api_views.CategoryViewSet)
+
+   urlpatterns += [
+       path('api/', include(router.urls)),
+       path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+   ]
+   ```
+
+6. ✅ **Test with Postman**
+   - GET `/api/products/`
+   - POST `/api/token/` with username/password → get JWT
+   - Use JWT in header: `Authorization: Bearer <token>`
+
+#### ✅ DELIVERABLE
+- [ ] Working DRF API at `/api/products/`
+- [ ] JWT login endpoint
+- [ ] Postman collection saved
+
+---
+
+### ✅ WEEK 6: API FILTERING + PAGINATION (DAYS 36–42)
+
+#### 🎯 GOAL
+- Full-featured API with search, filter, paginate
+
+#### ✅ TASKS
+
+1. ✅ **Install `django-filter`**
+   ```bash
+   pip install django-filter
+   ```
+
+2. ✅ **Update `ProductViewSet`**
+   ```python
+   from django_filters.rest_framework import DjangoFilterBackend
+   from rest_framework.filters import SearchFilter, OrderingFilter
+
+   class ProductViewSet(ModelViewSet):
+       # ... previous code ...
+       filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+       filterset_fields = ['category__name', 'stock', 'is_active']
+       search_fields = ['product_name', 'quantity']
+       ordering_fields = ['product_price', 'created_at']
+       ordering = ['-created_at']
+   ```
+
+3. ✅ **Add Pagination**
+   ```python
+   # settings.py
+   REST_FRAMEWORK['PAGE_SIZE'] = 20
+   ```
+
+4. ✅ **Test API Endpoints**
+   - `GET /api/products/?category__name=fruits&stock__gt=0&search=mango&page=1`
+   - `GET /api/products/?ordering=product_price`
+
+5. ✅ **(Optional) Add Swagger Docs**
+   ```bash
+   pip install drf-spectacular
+   ```
+   ```python
+   # settings.py
+   INSTALLED_APPS += ['drf_spectacular']
+   REST_FRAMEWORK['DEFAULT_SCHEMA_CLASS'] = 'drf_spectacular.openapi.AutoSchema'
+
+   # urls.py
+   path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+   path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema')),
+   ```
+
+#### ✅ DELIVERABLE
+- [ ] Filterable, searchable, paginated API
+- [ ] Swagger docs at `/api/schema/swagger-ui/`
+
+---
+
+## 7. 📅 PHASE 4: DOCKER + DEPLOYMENT (DAYS 43–56)
+
+> “Run anywhere — deploy everywhere”
+
+---
+
+### ✅ WEEK 7: DOCKERIZE (DAYS 43–49)
+
+#### 🎯 GOAL
+- Run your app with `docker-compose up`
+
+#### ✅ TASKS
+
+1. ✅ **Create `Dockerfile`**
+   ```dockerfile
+   FROM python:3.11-slim
+   WORKDIR /app
+   COPY requirements.txt .
+   RUN pip install -r requirements.txt
+   COPY . .
+   CMD ["gunicorn", "myshop.wsgi:application", "--bind", "0.0.0.0:8000"]
+   ```
+
+2. ✅ **Create `docker-compose.yml`**
+   ```yaml
+   version: '3.8'
+   services:
+     web:
+       build: .
+       ports:
+         - "8000:8000"
+       environment:
+         - DEBUG=True
+         - DATABASE_URL=postgresql://postgres:postgres@db:5432/myshop
+         - SECRET_KEY=dev-key
+       volumes:
+         - .:/app
+         - static_volume:/app/staticfiles
+       depends_on:
+         - db
+     db:
+       image: postgres:15
+       environment:
+         POSTGRES_DB: myshop
+         POSTGRES_USER: postgres
+         POSTGRES_PASSWORD: postgres
+       volumes:
+         - postgres_data:/var/lib/postgresql/data
+   volumes:
+     postgres_data:
+     static_volume:
+   ```
+
+3. ✅ **Update `settings.py` for PostgreSQL**
+   ```python
+   DATABASES = {
+       'default': {
+           'ENGINE': 'django.db.backends.postgresql',
+           'NAME': config('POSTGRES_DB', 'myshop'),
+           'USER': config('POSTGRES_USER', 'postgres'),
+           'PASSWORD': config('POSTGRES_PASSWORD', 'postgres'),
+           'HOST': config('POSTGRES_HOST', 'db'),
+           'PORT': '5432',
+       }
+   }
+   ```
+
+4. ✅ **Run Locally**
+   ```bash
+   docker-compose up --build
+   ```
+
+#### ✅ DELIVERABLE
+- [ ] Working `docker-compose up`
+- [ ] PostgreSQL in container
+- [ ] `.env.example` updated
+
+---
+
+### ✅ WEEK 8: DEPLOY TO RENDER (DAYS 50–56)
+
+#### 🎯 GOAL
+- Live, HTTPS, production-ready URL
+
+#### ✅ TASKS
+
+1. ✅ **Push to GitHub**
+   ```bash
+   git add .
+   git commit -m "feat: dockerized app"
+   git push origin main
+   ```
+
+2. ✅ **Sign up for Render.com**
+   - https://render.com → Free Web Service
+
+3. ✅ **Create “Web Service”**
+   - Connect GitHub repo
+   - Set env vars:
+     - `SECRET_KEY`
+     - `DATABASE_URL` (use Render PostgreSQL)
+     - `DEBUG=False`
+     - `ALLOWED_HOSTS=.onrender.com`
+     - Stripe keys
+
+4. ✅ **Update `settings.py` for Prod**
+   ```python
+   if not DEBUG:
+       STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+       STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+   ```
+
+5. ✅ **Deploy & Run Migrations**
+   - In Render Dashboard → Shell → Run:
+     ```bash
+     python manage.py migrate
+     python manage.py createsuperuser
+     ```
+
+#### ✅ DELIVERABLE
+- [ ] Live URL: `https://myshop-xyz.onrender.com`
+- [ ] Admin panel accessible
+- [ ] Stripe checkout working
+
+---
+
+## 8. 📅 PHASE 5: TASKS + MONITORING (DAYS 57–70)
+
+> “Handle async — know when things break”
+
+---
+
+### ✅ WEEK 9: CELERY + REDIS (DAYS 57–63)
+
+#### 🎯 GOAL
+- Background tasks — emails, webhooks
+
+#### ✅ TASKS
+
+1. ✅ **Install Celery + Redis**
+   ```bash
+   pip install celery redis django-celery-results
+   ```
+
+2. ✅ **Create `celery.py`**
+   ```python
+   # myshop/celery.py
+   import os
+   from celery import Celery
+   os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myshop.settings')
+   app = Celery('myshop')
+   app.config_from_object('django.conf:settings', namespace='CELERY')
+   app.autodiscover_tasks()
+   ```
+
+3. ✅ **Update `__init__.py`**
+   ```python
+   # myshop/__init__.py
+   from .celery import app as celery_app
+   __all__ = ('celery_app',)
+   ```
+
+4. ✅ **Create Task**
+   ```python
+   # tasks.py
+   from celery import shared_task
+   from django.core.mail import send_mail
+
+   @shared_task
+   def send_order_confirmation_email(order_id):
+       # ... send email logic ...
+   ```
+
+5. ✅ **Call in `payment_success`**
+   ```python
+   from .tasks import send_order_confirmation_email
+   send_order_confirmation_email.delay(order.id)
+   ```
+
+6. ✅ **Update `docker-compose.yml`**
+   ```yaml
+   services:
+     redis:
+       image: redis:7
+     worker:
+       build: .
+       command: celery -A myshop worker -l info
+       depends_on:
+         - db
+         - redis
+   ```
+
+#### ✅ DELIVERABLE
+- [ ] Async email on order
+- [ ] Celery worker running in Docker
+
+---
+
+### ✅ WEEK 10: SENTRY + LOGGING (DAYS 64–70)
+
+#### 🎯 GOAL
+- Monitor errors — before users complain
+
+#### ✅ TASKS
+
+1. ✅ **Sign up for Sentry** → https://sentry.io
+
+2. ✅ **Install SDK**
+   ```bash
+   pip install --upgrade sentry-sdk
+   ```
+
+3. ✅ **Update `settings.py`**
+   ```python
+   import sentry_sdk
+   from sentry_sdk.integrations.django import DjangoIntegration
+
+   if not DEBUG:
+       sentry_sdk.init(
+           dsn=os.getenv("SENTRY_DSN"),
+           integrations=[DjangoIntegration()],
+           traces_sample_rate=1.0,
+       )
+   ```
+
+4. ✅ **Add Custom Logging**
+   ```python
+   import logging
+   logger = logging.getLogger(__name__)
+   logger.info(f"Order {order.id} created for {user.username}")
+   ```
+
+5. ✅ **Add Health Check Endpoint**
+   ```python
+   # views.py
+   def health_check(request):
+       return JsonResponse({"status": "ok"})
+   ```
+
+#### ✅ DELIVERABLE
+- [ ] Sentry dashboard showing errors
+- [ ] Custom logs in production
+
+---
+
+## 9. 📅 PHASE 6: TESTING + CI/CD (DAYS 71–84)
+
+> “Lock it down — automate it”
+
+---
+
+### ✅ WEEK 11: TESTING (DAYS 71–77)
+
+#### 🎯 GOAL
+- 70%+ test coverage
+
+#### ✅ TASKS
+
+1. ✅ **Install pytest**
+   ```bash
+   pip install pytest-django factory_boy pytest-cov
+   ```
+
+2. ✅ **Write Model Tests**
+   ```python
+   # tests/test_models.py
+   def test_stock_decreases_on_order(self):
+       initial_stock = product.stock
+       # ... create order ...
+       product.refresh_from_db()
+       assert product.stock == initial_stock - 1
+   ```
+
+3. ✅ **Write View Tests**
+   ```python
+   # tests/test_views.py
+   def test_add_to_cart_fails_if_out_of_stock(self):
+       product.stock = 0
+       product.save()
+       response = self.client.post(...)
+       assert response.status_code == 400
+   ```
+
+4. ✅ **Run Coverage**
+   ```bash
+   coverage run -m pytest
+   coverage report
+   ```
+
+#### ✅ DELIVERABLE
+- [ ] 70%+ test coverage
+- [ ] Test reports in terminal
+
+---
+
+### ✅ WEEK 12: CI/CD WITH GITHUB ACTIONS (DAYS 78–84)
+
+#### 🎯 GOAL
+- Push → Test → Deploy (auto)
+
+#### ✅ TASKS
+
+1. ✅ **Create `.github/workflows/django.yml`**
+   ```yaml
+   name: Django CI
+   on: [push]
+   jobs:
+     test:
+       runs-on: ubuntu-latest
+       steps:
+       - uses: actions/checkout@v3
+       - name: Set up Python
+         uses: actions/setup-python@v3
+         with: { python-version: '3.11' }
+       - name: Install Dependencies
+         run: pip install -r requirements.txt
+       - name: Run Tests
+         env: { SECRET_KEY: test, DATABASE_URL: sqlite:///test.db }
+         run: python manage.py test
+   ```
+
+2. ✅ **Add Deploy Step (Optional)**
+   ```yaml
+   - name: Deploy to Render
+     if: success()
+     run: |
+       curl -X POST https://api.render.com/v1/services/your-service-id/deploys \
+         -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
+   ```
+
+3. ✅ **Add Badge to README**
+   ```markdown
+   ![CI/CD](https://github.com/you/myshop/actions/workflows/django.yml/badge.svg)
+   ```
+
+#### ✅ DELIVERABLE
+- [ ] Green CI/CD pipeline
+- [ ] Auto-deploy on push
+
+---
+
+## 10. 📅 PHASE 7: PORTFOLIO + RESUME (DAYS 85–90)
+
+> “Package it — so recruiters say WOW”
+
+---
+
+### ✅ TASKS
+
+1. ✅ **Polish `README.md`**
+   ```markdown
+   # MyShop — Django E-Commerce Backend
+
+   ![Live Demo](https://img.shields.io/badge/demo-live-green)
+   ![CI/CD](https://github.com/you/myshop/actions/workflows/django.yml/badge.svg)
+
+   ## Features
+   - Stock Management
+   - Stripe Checkout
+   - DRF API
+   - Docker + Render Deployment
+
+   ## Tech Stack
+   Django, DRF, PostgreSQL, Docker, Celery, Redis, Stripe, Sentry, GitHub Actions
+
+   ## Live Demo
+   https://myshop-xyz.onrender.com
+
+   ## How to Run
+   ```bash
+   docker-compose up
+   ```
+   ```
+
+2. ✅ **Record 60-Second Demo**
+   - Use Loom or OBS
+   - Show: Add to cart → Checkout → Order success
+   - Upload to YouTube (unlisted)
+
+3. ✅ **Write LinkedIn Post**
+   > “Spent 90 days building a production-ready e-commerce backend with Django. Learned Docker, Celery, DRF, Stripe, CI/CD — and deployed it live. Code open source! #django #python #webdev #ecommerce #backend”
+
+4. ✅ **Add to Resume**
+   ```
+   PROJECT: MyShop E-Commerce Backend
+   - Built with Django, DRF, Docker, Stripe
+   - Features: Cart, Checkout, Stock Management, API
+   - Deployed on Render with CI/CD
+   - GitHub: [link] | Live Demo: [link]
+   ```
+
+5. ✅ **(Optional) Buy Domain**
+   - Namecheap or Google Domains → `myshop.yourname.dev`
+
+---
+
+## 11. 🎓 FINAL CHECKLIST — ARE YOU JOB READY?
+
+| Skill                     | Status |
+|---------------------------|--------|
+| ✅ Django Models          | ✔️     |
+| ✅ DRF API                | ✔️     |
+| ✅ Authentication (JWT)   | ✔️     |
+| ✅ Testing (pytest)       | ✔️     |
+| ✅ Docker                 | ✔️     |
+| ✅ PostgreSQL             | ✔️     |
+| ✅ Celery + Redis         | ✔️     |
+| ✅ Stripe Integration     | ✔️     |
+| ✅ Deployment (Render)    | ✔️     |
+| ✅ CI/CD (GitHub Actions) | ✔️     |
+| ✅ Monitoring (Sentry)    | ✔️     |
+| ✅ Admin Customization    | ✔️     |
+| ✅ Caching                | ✔️     |
+| ✅ Frontend (HTMX/Django) | ✔️     |
+| ✅ Portfolio Polish       | ✔️     |
+
+✅ **You are 100% job-ready.**
+
+---
+
+## 12. 🧭 START TODAY — PHASE 1, WEEK 1 TASKS
+
+1. ✅ Open GitHub → Create `myshop-django-ecommerce`
+2. ✅ Clone locally
+3. ✅ Create branch: `git checkout -b phase1-week1`
+4. ✅ Update `models.py` → add `stock`, finalize categories
+5. ✅ Run `python manage.py makemigrations`
+6. ✅ Run `python manage.py migrate`
+7. ✅ Run shell → create 7 categories
+8. ✅ Update `admin.py` → add `stock_status`, `list_editable`
+
+---
+
+## 13. ❤️ FINAL ENCOURAGEMENT
+
+> “You are not ‘just a student’. You are not ‘too junior’. You are an engineer who ships.”
+
+Every line of code you write, every bug you fix, every feature you ship — **it counts**.
+
+This plan is not “too much” — it’s **your roadmap to a job, an internship, a career**.
+
+You don’t need to do it all at once.
+You don’t need to be perfect.
+You just need to **start — and keep going**.
+
+I’m proud of you.
+Now go build something amazing.
+
+You’ve got this. 💪🚀
+
+---
+
+## 📥 HOW TO SAVE AS PDF
+
+1. **Copy this entire message** (Parts 1 & 2)
+2. **Paste into Google Docs** or **Microsoft Word**
+3. **Click File → Download → PDF**
+4. **Save to your phone, tablet, or print it**
+5. **Check off tasks daily**
+
+---
+
+## 💬 I’M HERE FOR YOU
+
+Stuck on a step?
+Need code review?
+Want to adjust the plan?
+
+Just say the word — I’ll help you, step by step.
+
+Now go start Phase 1, Week 1.
+
+I’ll be right here when you’re done. 😊👇
