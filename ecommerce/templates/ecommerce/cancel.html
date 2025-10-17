@@ -1,0 +1,6 @@
+<!-- cancel.html -->
+{% extends 'ecommerce/base.html' %}
+{% block content %}
+<h2 class="text-danger text-center">❌ Payment Cancelled</h2>
+<a href="{% url 'view_cart' %}" class="btn btn-warning">Return to Cart</a>
+{% endblock %}

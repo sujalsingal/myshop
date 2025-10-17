@@ -1,0 +1,318 @@
+{% extends 'ecommerce/base.html' %}
+{% load static %}
+
+{% block title %}{{ product.product_name }} - MyShop{% endblock %}
+
+{% block content %}
+<style>
+    /* Button Hover Effects */
+    #add-btn-{{ product.id }}:hover {
+        background-color: #e0a800;
+        transform: scale(1.05);
+        transition: all 0.2s ease-in-out;
+    }
+
+    a.btn-success:hover {
+        background-color: #157347;
+        transform: scale(1.05);
+        transition: all 0.2s ease-in-out;
+    }
+
+    #stepper-{{ product.id }} button:hover {
+        transform: scale(1.1);
+        transition: all 0.2s ease-in-out;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="row g-4">
+        <!-- Product Image -->
+        <div class="col-md-5 text-center">
+            <div class="border rounded p-3 shadow-sm">
+                {% if product.product_photo %}
+                    <img src="{{ product.product_photo }}" alt="{{ product.product_name }}" class="img-fluid" style="max-height: 400px;">
+                {% else %}
+                    <img src="{% static 'ecommerce/images/no_image.png' %}" alt="No Image" class="img-fluid">
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-md-7">
+            <h2 class="fw-bold">{{ product.product_name }}</h2>
+            <p class="text-muted mb-3">Category: {{ product.category }}</p>
+
+            <!-- Average Rating Stars -->
+            <div class="d-flex align-items-center mb-3">
+                <div class="text-warning me-2 fs-5">
+                    {% for i in "12345"|make_list %}
+                        {% if i|add:'0' <= avg_rating %}
+                            <i class="bi bi-star-fill"></i>
+                        {% elif i|add:'-0.5' <= avg_rating %}
+                            <i class="bi bi-star-half"></i>
+                        {% else %}
+                            <i class="bi bi-star"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <small class="text-muted">({{ review_count }} reviews)</small>
+            </div>
+
+            <h4 class="text-success fw-bold mb-4">₹{{ product.product_price }}</h4>
+            {% if product.description %}<p>{{ product.description }}</p>{% endif %}
+
+            <div class="my-4">
+                <!-- Add to Cart Button -->
+                <button
+                    id="add-btn-{{ product.id }}"
+                    class="btn btn-warning btn-lg w-100 shadow-sm d-flex justify-content-center align-items-center gap-2 rounded-pill mb-3"
+                    style="font-size: 1.1rem; font-weight: 600; height: 55px;"
+                    onclick="addToCart({{ product.id }})"
+                >
+                    <i class="bi bi-cart-plus fs-4"></i>
+                    <span>Add to Cart</span>
+                </button>
+
+                <!-- Buy Now Button -->
+  <!-- Buy Now Button -->
+<button
+    type="button"
+    class="btn btn-success btn-lg w-100 shadow-sm rounded-pill mb-3"
+    style="font-size: 1.1rem; font-weight: 600; height: 55px;"
+    onclick="buyNow({{ product.id }})"
+>
+    <i class="bi bi-lightning-fill fs-5"></i> Buy Now
+</button>
+
+                <!-- Quantity Stepper -->
+                <div id="stepper-{{ product.id }}" class="d-none d-flex justify-content-center align-items-center border rounded-pill shadow-sm mx-auto"
+                     style="background: #fff; width: 220px; height: 55px;">
+                    <button class="btn btn-outline-danger rounded-circle" type="button" style="width: 45px; height: 45px;"
+                            onclick="updateQty({{ product.id }}, 'decrease')">
+                        <i class="bi bi-dash-lg"></i>
+                    </button>
+                    <input type="text" id="qty-{{ product.id }}" class="form-control text-center border-0 fs-5 fw-bold"
+                           value="1" readonly style="width: 60px; background: transparent;">
+                    <button class="btn btn-outline-success rounded-circle" type="button" style="width: 45px; height: 45px;"
+                            onclick="updateQty({{ product.id }}, 'increase')">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Save for Later -->
+            <form method="post" action="{% url 'save_product' product.id %}" class="save-product-form" data-product-id="{{ product.id }}">
+                {% csrf_token %}
+                {% if product.id in saved_product_ids %}
+                    <button type="submit" class="btn btn-warning w-100 mb-3">
+                        <i class="bi bi-bookmark-check"></i> Remove from Saved
+                    </button>
+                {% else %}
+                    <button type="submit" class="btn btn-outline-secondary w-100 mb-3">
+                        <i class="bi bi-bookmark"></i> Save for Later
+                    </button>
+                {% endif %}
+            </form>
+            <div class="save-message" id="save-message-{{ product.id }}"></div>
+
+            <!-- Back to Products -->
+            <a href="{% url 'detail' %}" class="btn btn-outline-dark w-100">⬅ Back to Products</a>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="mt-5">
+        <h4>Customer Reviews</h4>
+        <hr>
+        {% for review in reviews %}
+            <div class="border rounded p-3 mb-3 shadow-sm">
+                <strong>{{ review.user.username }}</strong>
+                <div class="text-warning mb-1 fs-5">
+                    {% for i in "12345"|make_list %}
+                        {% if i|add:'0' <= review.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                    {% endfor %}
+                </div>
+                <p>{{ review.comment }}</p>
+                <small class="text-muted">{{ review.created_at|date:"d M Y" }}</small>
+            </div>
+        {% empty %}
+            <p class="text-muted">No reviews yet. Be the first!</p>
+        {% endfor %}
+    </div>
+
+    <!-- Review Form -->
+    {% if user.is_authenticated %}
+        <div class="mt-4">
+            <h5>Leave a Review</h5>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Rating</label>
+                    <div id="star-rating" class="fs-3 text-warning" style="cursor: pointer;">
+                        {% for i in "12345" %}
+                            <span class="star" data-value="{{ forloop.counter }}">☆</span>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="rating" id="rating-input" required>
+                </div>
+                <div class="mb-3">
+                    <label for="comment" class="form-label">Comment</label>
+                    <textarea name="comment" id="comment" class="form-control" rows="3" placeholder="Write your review..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Submit Review</button>
+            </form>
+        </div>
+    {% else %}
+        <p class="mt-3"><a href="{% url 'login' %}">Login</a> to leave a review.</p>
+    {% endif %}
+</div>
+
+<script>
+const urls = {
+    increaseQuantity: "{% url 'increase_quantity' 0 %}",
+    decreaseQuantity: "{% url 'decrease_quantity' 0 %}"
+};
+
+// Helper to replace '0' in URLs with product ID
+function getUrl(baseUrl, productId) {
+    return baseUrl.replace('0', productId);
+}
+
+// Star rating interactivity
+document.querySelectorAll('#star-rating .star').forEach(star => {
+    star.addEventListener('click', () => {
+        const value = Number(star.dataset.value);
+        document.getElementById('rating-input').value = value;
+        document.querySelectorAll('#star-rating .star').forEach(s => s.textContent = '☆');
+        for (let i = 0; i < value; i++) document.querySelectorAll('#star-rating .star')[i].textContent = '★';
+    });
+});
+
+// Save for Later
+document.querySelectorAll('.save-product-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const productId = this.dataset.productId;
+        const csrfToken = this.querySelector('[name=csrfmiddlewaretoken]').value;
+        const messageDiv = document.getElementById(`save-message-${productId}`);
+
+        fetch(this.action, {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(res => res.json())
+        .then(data => {
+            messageDiv.innerHTML = `<div class="alert alert-info">${data.message}</div>`;
+            setTimeout(() => messageDiv.innerHTML = '', 3000);
+            const btn = this.querySelector('button');
+            if(data.status==='added') {
+                btn.innerHTML = '<i class="bi bi-bookmark-check"></i> Remove from Saved';
+                btn.classList.remove('btn-outline-secondary'); btn.classList.add('btn-warning');
+            } else {
+                btn.innerHTML = '<i class="bi bi-bookmark"></i> Save for Later';
+                btn.classList.remove('btn-warning'); btn.classList.add('btn-outline-secondary');
+            }
+        });
+    });
+});
+
+// Toast helper
+function showToast(message) {
+    const toastContainer = document.getElementById('toast-container');
+    if(!toastContainer) return;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = `<div class="toast text-bg-primary border-0" role="alert" data-bs-delay="2000" aria-live="polite" aria-atomic="true">
+        <div class="d-flex"><div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>
+    </div>`;
+    const toastEl = tempDiv.firstElementChild;
+    toastContainer.appendChild(toastEl);
+    const bsToast = new bootstrap.Toast(toastEl);
+    bsToast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+}
+
+// Cart count update
+function updateCartIconCount(count) {
+    const cartCount = document.getElementById('cart-count');
+    if(cartCount) { cartCount.textContent = count; cartCount.style.display = count>0?'inline':'none'; }
+}
+
+// Add to Cart
+function addToCart(productId) {
+    fetch(getUrl(urls.increaseQuantity, productId), {
+        method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':getCookie('csrftoken')}
+    }).then(res=>res.json()).then(data=>{
+        if(data.status==='success') {
+            showToast(data.messages_html || 'Added to cart');
+            updateCartIconCount(data.cart_count);
+            document.getElementById('qty-'+productId).value = data.quantity;
+            document.getElementById('add-btn-'+productId).classList.add('d-none');
+            document.getElementById('stepper-'+productId).classList.remove('d-none');
+        } else showToast(data.message||'Failed to add to cart');
+    }).catch(()=>showToast('Error adding to cart'));
+}
+
+// Update Quantity
+function updateQty(productId, action){
+    const url = action==='increase'?getUrl(urls.increaseQuantity,productId):getUrl(urls.decreaseQuantity,productId);
+    fetch(url,{method:'POST',headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':getCookie('csrftoken')}})
+    .then(res=>res.json()).then(data=>{
+        let qty = Number(data.quantity) || 0;
+        if(qty<=0){
+            document.getElementById('stepper-'+productId).classList.add('d-none');
+            document.getElementById('add-btn-'+productId).classList.remove('d-none');
+            document.getElementById('qty-'+productId).value = 1;
+        } else document.getElementById('qty-'+productId).value = qty;
+        updateCartIconCount(data.cart_count);
+        if(data.message) showToast(data.message);
+    }).catch(()=>showToast('Failed to update quantity.'));
+}
+
+// Get CSRF cookie
+function getCookie(name){
+    let cookieValue=null;
+    if(document.cookie && document.cookie!==''){
+        document.cookie.split(';').forEach(cookie=>{
+            cookie=cookie.trim();
+            if(cookie.startsWith(name+'=')) cookieValue=decodeURIComponent(cookie.substring(name.length+1));
+        });
+    }
+    return cookieValue;
+}
+function buyNow(productId){
+    fetch(getUrl(urls.increaseQuantity, productId), {
+        method:'POST',
+        headers:{
+            'X-Requested-With':'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'success'){
+            // Update cart icon count
+            updateCartIconCount(data.cart_count);
+            // Show toast message
+            showToast('Added to cart');
+            // Redirect to view cart page after a short delay
+            setTimeout(() => {
+                window.location.href = "{% url 'view_cart' %}";
+            }, 500); // 0.5 second delay for toast to show
+        } else {
+            showToast(data.message || 'Failed to add to cart');
+        }
+    })
+    .catch(()=> showToast('Error adding to cart'));
+}
+
+// Initialize cart count on load
+document.addEventListener("DOMContentLoaded", () => {
+    fetch("{% url 'cart_count' %}")
+        .then(res => res.json())
+        .then(data => updateCartIconCount(data.cart_count))
+        .catch(()=>console.error('Error fetching cart count'));
+});
+</script>
+
+{% endblock %}
